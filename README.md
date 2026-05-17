@@ -1,5 +1,7 @@
 # Learning AI
 
+**Python 3.12 requerido** - Para TensorFlow, usar entorno `tfenv` con `conda activate tfenv`.
+
 Proyectos y ejercicios para aprender IA y machine learning desde cero, implementando redes neuronales con Numba.
 
 ## Instalación

@@ -25,6 +25,7 @@ iY = tf.placeholder('float', shape=[None, 1], name='targets')
 
 nn = [2, 8, 1]  # Neurons in each layer
 lr = 0.1
+n_epochs = 10000
 
 # Layer 1
 W1 = tf.Variable(tf.random_normal([nn[0], nn[1]]), name='W1')
@@ -40,8 +41,6 @@ pY = tf.sigmoid(tf.add(tf.matmul(l1, W2), b2)) # Predicted output
 # Loss and optimizer
 loss = tf.losses.mean_squared_error(labels=iY, predictions=pY)
 optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr).minimize(loss)
-
-n_epochs = 10000
 
 with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())

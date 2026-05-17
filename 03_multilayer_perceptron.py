@@ -3,6 +3,7 @@ from numba import njit, prange
 import numpy as np
 from utils import forward, sigmoid, dSigmoid, identity, dIdentity, mean_reduce
 from test import test
+from test_numeric import test_numeric
 
 N: np.int32 = 2
 SAMPLES: np.int32 = 4
@@ -44,3 +45,4 @@ def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.
 
 if __name__ == "__main__":
   test(gradient_descent, forward, sigmoid, dSigmoid)
+  test_numeric(gradient_descent, forward, identity, dIdentity)

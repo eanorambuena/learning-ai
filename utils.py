@@ -1,19 +1,34 @@
 import numpy as np
 from numba import njit, prange
 
-N: np.int32 = 2
-SAMPLES: np.int32 = 4
-
 @njit
 def rand_bin(shape: tuple) -> np.ndarray:
   return np.clip(np.random.rand(*shape), 0, 1).astype(np.float32)
 
 @njit
-def init_params() -> tuple:
-  return (rand_bin((N, N)), rand_bin((N,)))
+def init_params(n: np.int32) -> tuple:
+  return (rand_bin((n, n)), rand_bin((n,)))
+
+@njit
+def identity(x: np.ndarray) -> np.ndarray:
+  return x
+
+@njit
+def sigmoid(x: np.ndarray) -> np.ndarray:
+  return 1 / (1 + np.exp(-x))
+
+@njit
+def dIdentity(x: np.ndarray) -> np.ndarray:
+  return np.ones_like(x)
+
+@njit
+def dSigmoid(x: np.ndarray) -> np.ndarray:
+  s = sigmoid(x)
+  return s * (1 - s)
 
 @njit(parallel=True)
-def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
+def linear_forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
+  SAMPLES, N = data.shape
   z = np.zeros((SAMPLES, N), dtype=np.float32)
   for i in prange(SAMPLES):
     for j in range(N):
@@ -21,6 +36,26 @@ def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
       for k in range(N):
         z[i, j] += w[j, k] * data[i, k]
   return z
+
+@njit
+def mean_reduce(arr: np.ndarray) -> np.ndarray:
+  SAMPLES, N, _ = arr.shape
+  mean = np.zeros((N, N), dtype=np.float32)
+  for j in range(N):
+    for k in range(N):
+      for i in range(SAMPLES):
+        mean[j, k] += arr[i, j, k]
+      mean[j, k] /= SAMPLES
+  return mean
+
+@njit(parallel=True)
+def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray, activation) -> np.ndarray:
+  SAMPLES, N = data.shape
+  z = linear_forward(data, w, b)
+  a = np.zeros((SAMPLES, N), dtype=np.float32)
+  for i in prange(SAMPLES):
+    a[i] = activation(z[i])
+  return a
 
 @njit
 def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
@@ -35,8 +70,9 @@ def print_results(w: np.ndarray, b: np.ndarray, prediction: np.ndarray, target: 
   precision = (1 - error) * 100
   print(f"Precision: {precision:.2f}%")
 
-def init_and_train(data: np.ndarray, target: np.ndarray, train_func, forward) -> None:
-  w, b = init_params()
-  train_func(data, target, w, b)
-  prediction = forward(data, w, b)
+def init_and_train(data: np.ndarray, target: np.ndarray, train_func, forward_func, activation, d_activation) -> None:
+  n = data.shape[1]
+  w, b = init_params(n)
+  train_func(data, target, w, b, activation, d_activation)
+  prediction = forward_func(data, w, b, activation)
   print_results(w, b, prediction, target)

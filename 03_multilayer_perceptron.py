@@ -1,7 +1,7 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
-from utils import init_params
+from utils import forward, sigmoid, dSigmoid, identity, dIdentity, mean_reduce
 from test import test
 
 N: np.int32 = 2
@@ -9,68 +9,38 @@ SAMPLES: np.int32 = 4
 LEARNING_RATE: np.float32 = 0.1
 EPOCHS: np.int32 = 1000
 
-@njit
-def sigmoid(x: np.ndarray) -> np.ndarray:
-  return 1 / (1 + np.exp(-x))
-
-@njit
-def dSigmoid_dz(x: np.ndarray) -> np.ndarray:
-  s = sigmoid(x)
-  return s * (1 - s)
-
 @njit(parallel=True)
-def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray) -> None:
+def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray, activation, d_activation) -> None:
   z = np.zeros(N, dtype=np.float32)
   a = np.zeros(N, dtype=np.float32)
+  da_dz = np.zeros(N, dtype=np.float32)
   for i in prange(SAMPLES):
     for j in range(N):
       z[j] = b[j]
       for k in range(N):
         z[j] += w[j, k] * data[i, k]
+    a = activation(z)
+    da_dz = d_activation(z)
     for j in range(N):
-      a[j] = sigmoid(z[j])
-      da_dz = a[j] * (1 - a[j])
-      error = (a[j] - target[i, j]) * da_dz
-    for j in range(N):
+      error = (a[j] - target[i, j]) * da_dz[j]
       for k in range(N):
         dw[i, j, k] = error * data[i, k]
       db[i, j] = error
 
 @njit
-def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray) -> None:
+def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, activation, d_activation) -> None:
   dw = np.zeros((SAMPLES, N, N), dtype=np.float32)
   db = np.zeros((SAMPLES, N), dtype=np.float32)
-  dw_mean = np.zeros((N, N), dtype=np.float32)
-  db_mean = np.zeros(N, dtype=np.float32)
   for epoch in range(EPOCHS):
-    compute_gradients(data, target, w, b, dw, db)
+    compute_gradients(data, target, w, b, dw, db, activation, d_activation)
+    dw_mean = mean_reduce(dw)
+    db_mean = np.zeros(N, dtype=np.float32)
     for j in range(N):
-      for k in range(N):
-        dw_mean[j, k] = 0.0
-        for i in range(SAMPLES):
-          dw_mean[j, k] += dw[i, j, k]
-        dw_mean[j, k] /= SAMPLES
-      db_mean[j] = 0.0
       for i in range(SAMPLES):
         db_mean[j] += db[i, j]
       db_mean[j] /= SAMPLES
     w[:] = w - LEARNING_RATE * dw_mean
     b[:] = b - LEARNING_RATE * db_mean
 
-def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
-  z = np.zeros((SAMPLES, N), dtype=np.float32)
-  a = np.zeros((SAMPLES, N), dtype=np.float32)
-  for i in prange(SAMPLES):
-    for j in range(N):
-      z[i, j] = b[j]
-      for k in range(N):
-        z[i, j] += w[j, k] * data[i, k]
-    for j in range(N):
-      a[i, j] = sigmoid(z[i, j])
-  return a
-
-def train_func(data, target, w, b):
-  gradient_descent(data, target, w, b)
-
 if __name__ == "__main__":
-  test(train_func, forward)
+  test(gradient_descent, forward, sigmoid, dSigmoid)

@@ -122,8 +122,27 @@ Mismo problema (XOR), misma arquitectura (2-8-1), mismo learning rate (0.1):
 
 **TensorFlow fue ~5x más rápido** con mismas condiciones. Posibles razones:
 - Inicialización de pesos por defecto diferente
-- Implementación de SGD internamente distinta
+- Implementación de SGD internamente distintas
 - Precisión numérica entre frameworks
+
+## Comparación Completa (10)
+
+Problema CIRCLE (clasificación círculo interno vs externo), misma arquitectura (2-16-1), mismos hiperparámetros:
+
+| Framework | Accuracy Final |
+|-----------|----------------|
+| TensorFlow legacy | **100%** |
+| Keras | 66.67% |
+| PyTorch | 66.67% |
+| sklearn | 66.67% |
+
+**Aprendizaje clave: La inicialización de pesos importa**
+- TF legacy usa `random_normal` por defecto → converge bien
+- PyTorch usa Kaiming uniform → se estanca
+- Keras usa Glorot uniform → se estanca
+- sklearn tiene su propia inicialización → se estanca
+
+Para redes pequeñas (2 capas), la inicialización "correcta" (Kaiming/Glorot) puede ser peor que random_normal simple.
 
 ## Contribuciones
 

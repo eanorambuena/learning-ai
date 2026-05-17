@@ -1,6 +1,7 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
+from utils import rand_bin, mse, print_results
 
 N: np.int32 = 2
 SAMPLES: np.int32 = 4
@@ -16,14 +17,7 @@ X = | 0 1 |     target = | 1 1 |
 OR:   target = [[0,0], [1,1], [1,1], [1,1]]
 AND:  target = [[0,0], [0,0], [0,0], [1,1]]
 XOR:  target = [[0,0], [1,1], [1,1], [0,0]]
-"""
-
-@njit
-def rand_bin(shape: tuple) -> np.ndarray:
-  return np.clip(np.random.rand(*shape), 0, 1).astype(np.float32)
-
-@njit
-def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
+"""(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
   return np.mean((prediction - target) ** 2)
 
 @njit
@@ -54,13 +48,8 @@ def init_and_train(data: np.ndarray, target: np.ndarray) -> None:
   w, b = init_params()
   least_squares(data, target, w, b)
   prediction = forward(data, w, b)
-  print(f"w: {w}")
-  print(f"b: {b}")
-  print(f"prediction: {prediction}")
-  print(f"target: {target}")
   error = mse(prediction, target)
-  precision = (1 - error) * 100
-  print(f"Precision: {precision:.2f}%")
+  print_results(w, b, prediction, target, error)
 
 def or_gate():
   print("\n=== OR ===")

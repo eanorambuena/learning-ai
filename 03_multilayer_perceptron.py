@@ -1,6 +1,7 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
+from utils import rand_bin, sigmoid, dSigmoid_dz, mse, print_results
 
 N: np.int32 = 2
 SAMPLES: np.int32 = 4
@@ -21,19 +22,6 @@ XOR:  target = [[0,0], [1,1], [1,1], [0,0]]
 """
 
 @njit
-def rand_bin(shape: tuple) -> np.ndarray:
-  return np.clip(np.random.rand(*shape), 0, 1).astype(np.float32)
-
-@njit
-def sigmoid(x: np.ndarray) -> np.ndarray:
-  return 1 / (1 + np.exp(-x))
-
-@njit
-def dSigmoid_dz(z: np.ndarray) -> np.ndarray:
-  s = sigmoid(z)
-  return s * (1 - s)
-
-@njit
 def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
   return np.mean((prediction - target) ** 2)
 
@@ -42,7 +30,7 @@ def init_params() -> tuple:
   return (rand_bin((N, N)), rand_bin((N,)))
 
 @njit(parallel=True)
-def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray, use_activation: bool) -> None:
+def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray) -> None:
   z = np.zeros(N, dtype=np.float32)
   a = np.zeros(N, dtype=np.float32)
   for i in prange(SAMPLES):
@@ -50,27 +38,23 @@ def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np
       z[j] = b[j]
       for k in range(N):
         z[j] += w[j, k] * data[i, k]
-    if use_activation:
-      for j in range(N):
-        a[j] = 1 / (1 + np.exp(-z[j]))
-        da_dz = a[j] * (1 - a[j])
-        error = (a[j] - target[i, j]) * da_dz
-    else:
-      for j in range(N):
-        error = z[j] - target[i, j]
+    for j in range(N):
+      a[j] = sigmoid(z[j])
+      da_dz = a[j] * (1 - a[j])
+      error = (a[j] - target[i, j]) * da_dz
     for j in range(N):
       for k in range(N):
         dw[i, j, k] = error * data[i, k]
       db[i, j] = error
 
 @njit
-def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, use_activation: bool) -> None:
+def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray) -> None:
   dw = np.zeros((SAMPLES, N, N), dtype=np.float32)
   db = np.zeros((SAMPLES, N), dtype=np.float32)
   dw_mean = np.zeros((N, N), dtype=np.float32)
   db_mean = np.zeros(N, dtype=np.float32)
   for epoch in range(EPOCHS):
-    compute_gradients(data, target, w, b, dw, db, use_activation)
+    compute_gradients(data, target, w, b, dw, db)
     for j in range(N):
       for k in range(N):
         dw_mean[j, k] = 0.0
@@ -85,7 +69,7 @@ def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.
     b[:] = b - LEARNING_RATE * db_mean
 
 @njit(parallel=True)
-def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray, use_activation: bool) -> np.ndarray:
+def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
   z = np.zeros((SAMPLES, N), dtype=np.float32)
   a = np.zeros((SAMPLES, N), dtype=np.float32)
   for i in prange(SAMPLES):
@@ -93,47 +77,39 @@ def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray, use_activation: bool
       z[i, j] = b[j]
       for k in range(N):
         z[i, j] += w[j, k] * data[i, k]
-    if use_activation:
-      for j in range(N):
-        a[i, j] = 1 / (1 + np.exp(-z[i, j]))
-  if use_activation:
-    return a
-  return z
+    for j in range(N):
+        a[i, j] = sigmoid(z[i, j])
+  return a
 
-def init_and_train(data: np.ndarray, target: np.ndarray, use_activation: bool) -> None:
+def init_and_train(data: np.ndarray, target: np.ndarray) -> None:
   w, b = init_params()
-  gradient_descent(data, target, w, b, use_activation)
-  prediction = forward(data, w, b, use_activation)
-  print(f"w: {w}")
-  print(f"b: {b}")
-  print(f"prediction: {prediction}")
-  print(f"target: {target}")
+  gradient_descent(data, target, w, b)
+  prediction = forward(data, w, b)
   error = mse(prediction, target)
-  precision = (1 - error) * 100
-  print(f"Precision: {precision:.2f}%")
+  print_results(w, b, prediction, target, error)
 
-def or_gate(use_activation: bool):
+def or_gate():
   print("\n=== OR ===")
   data: np.ndarray = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
   target: np.ndarray = np.array([[0, 0], [1, 1], [1, 1], [1, 1]], dtype=np.float32)
-  init_and_train(data, target, use_activation)
+  init_and_train(data, target)
 
-def and_gate(use_activation: bool):
+def and_gate():
   print("\n=== AND ===")
   data: np.ndarray = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
   target: np.ndarray = np.array([[0, 0], [0, 0], [0, 0], [1, 1]], dtype=np.float32)
-  init_and_train(data, target, use_activation)
+  init_and_train(data, target)
 
-def xor_gate(use_activation: bool):
+def xor_gate():
   print("\n=== XOR ===")
   data: np.ndarray = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
   target: np.ndarray = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.float32)
-  init_and_train(data, target, use_activation)
+  init_and_train(data, target)
 
 def main():
-  or_gate(True)
-  and_gate(True)
-  xor_gate(True)
+  or_gate()
+  and_gate()
+  xor_gate()
 
 if __name__ == "__main__":
   main()

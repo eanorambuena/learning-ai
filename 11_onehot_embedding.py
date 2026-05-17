@@ -1,4 +1,4 @@
-# Run with: conda activate learning-ai && python 11_onehot_embedding.py
+# Run with: conda activate tfenv && python 11_onehot_embedding.py
 # Goal: Compress one-hot encoding (vocab_size -> embed_dim)
 
 import torch

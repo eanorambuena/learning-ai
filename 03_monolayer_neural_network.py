@@ -1,4 +1,4 @@
-#!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
+#!/home/eanorambuena/miniconda/envs/tfenv/bin/python
 from numba import njit, prange
 import numpy as np
 from utils import sigmoid, dSigmoid, apply_gradients

@@ -1,14 +1,12 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
-from utils import forward, identity, dIdentity
+from utils import forward
 from test import test
-
-N: np.int32 = 2
-SAMPLES: np.int32 = 4
 
 @njit(parallel=True)
 def least_squares(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, activation, d_activation) -> None:
+  SAMPLES, N = data.shape
   XtX = data.T @ data
   XtX_inv = np.linalg.inv(XtX)
   XtY = data.T @ target

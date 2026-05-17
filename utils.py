@@ -37,15 +37,27 @@ def linear_forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray
         z[i, j] += w[j, k] * data[i, k]
   return z
 
-@njit
+@njit(parallel=True)
 def mean_reduce(arr: np.ndarray) -> np.ndarray:
   SAMPLES, N, _ = arr.shape
   mean = np.zeros((N, N), dtype=np.float32)
-  for j in range(N):
+  for j in prange(N):
     for k in range(N):
+      total = 0.0
       for i in range(SAMPLES):
-        mean[j, k] += arr[i, j, k]
-      mean[j, k] /= SAMPLES
+        total += arr[i, j, k]
+      mean[j, k] = total / SAMPLES
+  return mean
+
+@njit(parallel=True)
+def mean_reduce_1d(arr: np.ndarray) -> np.ndarray:
+  SAMPLES, N = arr.shape
+  mean = np.zeros(N, dtype=np.float32)
+  for j in prange(N):
+    total = 0.0
+    for i in range(SAMPLES):
+      total += arr[i, j]
+    mean[j] = total / SAMPLES
   return mean
 
 @njit(parallel=True)

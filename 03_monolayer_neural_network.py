@@ -41,5 +41,5 @@ def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.
     b[:] = b - LEARNING_RATE * db_mean
 
 if __name__ == "__main__":
-  test(gradient_descent, forward, sigmoid, dSigmoid)
-  test_numeric(gradient_descent, forward, identity, dIdentity)
+  test(gradient_descent, sigmoid, dSigmoid)
+  test_numeric(gradient_descent, identity, dIdentity)

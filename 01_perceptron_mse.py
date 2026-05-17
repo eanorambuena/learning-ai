@@ -1,7 +1,6 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
-from utils import forward
 from test import test
 
 @njit(parallel=True)
@@ -16,4 +15,4 @@ def least_squares(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.nda
     b[j] = np.mean(residuals[:, j])
 
 if __name__ == "__main__":
-  test(least_squares, forward)
+  test(least_squares)

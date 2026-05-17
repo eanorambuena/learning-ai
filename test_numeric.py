@@ -1,7 +1,7 @@
 import numpy as np
 from utils import init_and_train, identity, dIdentity
 
-def divmod_gate(train_func, forward_func, activation=identity, d_activation=dIdentity):
+def divmod_gate(train_func, activation, d_activation):
   print("\n=== DIVMOD (quotient, remainder) ===")
   data: np.ndarray = np.array([
     [2, 2], [3, 2], [4, 2], [5, 2],
@@ -13,9 +13,9 @@ def divmod_gate(train_func, forward_func, activation=identity, d_activation=dIde
     [2, 0], [2, 1], [2, 2], [3, 0],
     [2, 2], [2, 3], [3, 0], [3, 1],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, forward_func, activation, d_activation)
+  init_and_train(data, target, train_func, activation, d_activation)
 
-def add_gate(train_func, forward_func, activation=identity, d_activation=dIdentity):
+def add_gate(train_func, activation, d_activation):
   print("\n=== ADD (a + b, a - b) ===")
   data: np.ndarray = np.array([
     [1, 2], [2, 3], [3, 1], [4, 2],
@@ -27,9 +27,9 @@ def add_gate(train_func, forward_func, activation=identity, d_activation=dIdenti
     [8, 2], [7, 5], [11, 3], [7, -3],
     [10, 6], [9, -3], [8, 0], [8, -6],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, forward_func, activation, d_activation)
+  init_and_train(data, target, train_func, activation, d_activation)
 
-def maxmin_gate(train_func, forward_func, activation=identity, d_activation=dIdentity):
+def maxmin_gate(train_func, activation, d_activation):
   print("\n=== MAXMIN (max, min) ===")
   data: np.ndarray = np.array([
     [3, 1], [2, 5], [4, 2], [1, 6],
@@ -41,9 +41,9 @@ def maxmin_gate(train_func, forward_func, activation=identity, d_activation=dIde
     [7, 3], [8, 5], [2, 2], [9, 1],
     [6, 4], [7, 3], [8, 4], [6, 6],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, forward_func, activation, d_activation)
+  init_and_train(data, target, train_func, activation, d_activation)
 
-def prod_gate(train_func, forward_func, activation=identity, d_activation=dIdentity):
+def prod_gate(train_func, activation, d_activation):
   print("\n=== PROD (a * b, a // b) ===")
   data: np.ndarray = np.array([
     [2, 3], [4, 2], [3, 2], [5, 2],
@@ -55,10 +55,10 @@ def prod_gate(train_func, forward_func, activation=identity, d_activation=dIdent
     [18, 2], [16, 1], [15, 2], [14, 5],
     [15, 0], [24, 2], [16, 4], [20, 0],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, forward_func, activation, d_activation)
+  init_and_train(data, target, train_func, activation, d_activation)
 
-def test_numeric(train_func, forward_func, activation=identity, d_activation=dIdentity):
-  divmod_gate(train_func, forward_func, activation, d_activation)
-  add_gate(train_func, forward_func, activation, d_activation)
-  maxmin_gate(train_func, forward_func, activation, d_activation)
-  prod_gate(train_func, forward_func, activation, d_activation)
+def test_numeric(train_func, activation=identity, d_activation=dIdentity):
+  divmod_gate(train_func, activation, d_activation)
+  add_gate(train_func, activation, d_activation)
+  maxmin_gate(train_func, activation, d_activation)
+  prod_gate(train_func, activation, d_activation)

@@ -82,9 +82,9 @@ def print_results(w: np.ndarray, b: np.ndarray, prediction: np.ndarray, target: 
   precision = (1 - error) * 100
   print(f"Precision: {precision:.2f}%")
 
-def init_and_train(data: np.ndarray, target: np.ndarray, train_func, forward_func, activation, d_activation) -> None:
+def init_and_train(data: np.ndarray, target: np.ndarray, train_func, activation, d_activation) -> None:
   n = data.shape[1]
   w, b = init_params(n)
   train_func(data, target, w, b, activation, d_activation)
-  prediction = forward_func(data, w, b, activation)
+  prediction = forward(data, w, b, activation)
   print_results(w, b, prediction, target)

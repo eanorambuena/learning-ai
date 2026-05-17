@@ -81,7 +81,50 @@ ls plots/
 - Puede resolver problemas no-linealmente separables (circulos, etc.)
 - La capa oculta permite representar funciones más complejas
 
+## Decisión de Framework
+
+Al implementar redes más complejas (04, 05), el código se volvió muy largo y difícil de mantener.
+Evaluamos 5 opciones:
+
+1. **Numba (manual)** - Lo que usamos hasta ahora
+   - ✅ Aprendimos el fondo (forward, backprop, gradientes)
+   - ❌ Solo CPU, debugging difícil, código muy largo
+
+2. **PyTorch** - La elección final ⭐
+   - ✅ Pythonico, fácil de debuggear, GPU automático
+   - ✅ Dynamic graphs, documentación excelente
+   - ✅ 75% de papers de investigación lo usan
+   - ✅ Mayor empleabilidad
+
+3. **TensorFlow/Keras**
+   - ❌ Muy abstracto - "no aprendés nada"
+   - ✅ Ecosistema de production
+
+4. **JAX**
+   - ✅ Similar a Numba, auto-differentiation
+   - ❌ Requiere skills de functional programming
+
+5. **scikit-learn**
+   - ❌ Muy abstracto, poco flexible
+
+**Conclusión:** Después de 01-03 (manual) y 04-05 (AI generated), migramos a PyTorch para seguir aprendiendo de forma más práctica.
+
+## PyTorch vs TensorFlow (08, 07)
+
+Mismo problema (XOR), misma arquitectura (2-8-1), mismo learning rate (0.1):
+
+| Framework | Epochs | Loss Final | Predicciones |
+|-----------|--------|------------|--------------|
+| TensorFlow (07) | 10,000 | 0.0063 | [0.05, 0.93, 0.92, 0.09] |
+| PyTorch (06) | 10,000 | 0.0152 | [0.11, 0.90, 0.89, 0.09] |
+
+**TensorFlow fue ~5x más rápido** con mismas condiciones. Posibles razones:
+- Inicialización de pesos por defecto diferente
+- Implementación de SGD internamente distinta
+- Precisión numérica entre frameworks
+
 ## Contribuciones
 
 - Archivos de implementación (01-03, test.py, test_numeric.py, utils.py): usuario
-- visualize.py y 04_bilayer_nn.py: generados con asistencia AI
+- visualize.py, 04, 05: generados con asistencia AI
+- 06: PyTorch, 07: TensorFlow

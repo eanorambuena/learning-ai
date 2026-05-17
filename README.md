@@ -149,3 +149,31 @@ Para redes pequeñas (2 capas), la inicialización "correcta" (Kaiming/Glorot) p
 - Archivos de implementación (01-03, test.py, test_numeric.py, utils.py): usuario
 - visualize.py, 04, 05: generados con asistencia AI
 - 06: PyTorch, 07: TensorFlow
+
+## Embeddings y Word2Vec (notebooks 11-15)
+
+Sección dedicada a embeddings de palabras y Word2Vec:
+
+### Datasets
+
+- **11** - Dataset local (texto hardcodeado)
+- **12** - TensorFlow Embedding Layer
+- **13** - Word2Vec eficiente (texto local, rápido)
+- **14** - Word2Vec con HuggingFace (`gaianet/london`) - dataset público, rápido
+- **15** - Word2Vec con Negative Sampling (`gaianet/london`) - más eficiente
+
+### Dataset gaianet/london ⭐
+
+Dataset público de HuggingFace que contiene artículos sobre Londres. Es muy rápido de cargar y perfecto para experimentar con Word2Vec.
+
+```python
+from datasets import load_dataset
+ds = load_dataset("gaianet/london", split="train")
+texts = [row['text'] for row in ds][:10000]
+```
+
+Ventajas:
+- Descarga rápida (~MB)
+- Texto en inglés, vocabulario rico
+- No requiere filtrado por idioma
+- Ideal para demos y experimentos

@@ -4,6 +4,8 @@ import numpy as np
 
 N: np.int32 = 2
 SAMPLES: np.int32 = 4
+LEARNING_RATE: np.float32 = 0.1
+EPOCHS: np.int32 = 1000
 
 """
 Rows are samples, columns are features. eg:
@@ -28,19 +30,37 @@ def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
 
 @njit
 def init_params() -> tuple:
-  return (rand_bin((N, N)), rand_bin((N,)), rand_bin((N,)))
+  return (rand_bin((N, N)), rand_bin((N,)))
 
 @njit(parallel=True)
-def least_squares(data: np.ndarray, target: np.ndarray) -> tuple:
-  XtX = data.T @ data
-  XtX_inv = np.linalg.inv(XtX)
-  XtY = data.T @ target
-  w = XtX_inv @ XtY
-  residuals = target - data @ w
-  b = np.zeros(N, dtype=np.float32)
-  for j in prange(N):
-    b[j] = np.mean(residuals[:, j])
-  return (w, b)
+def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray) -> None:
+  for i in prange(SAMPLES):
+    for j in range(N):
+      error = (b[j] + np.dot(w[j], data[i]) - target[i, j])
+      for k in range(N):
+        dw[i, j, k] = error * data[i, k]
+      db[i, j] = error
+
+@njit
+def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray) -> None:
+  dw = np.zeros((SAMPLES, N, N), dtype=np.float32)
+  db = np.zeros((SAMPLES, N), dtype=np.float32)
+  dw_mean = np.zeros((N, N), dtype=np.float32)
+  db_mean = np.zeros(N, dtype=np.float32)
+  for epoch in range(EPOCHS):
+    compute_gradients(data, target, w, b, dw, db)
+    for j in range(N):
+      for k in range(N):
+        dw_mean[j, k] = 0.0
+        for i in range(SAMPLES):
+          dw_mean[j, k] += dw[i, j, k]
+        dw_mean[j, k] /= SAMPLES
+      db_mean[j] = 0.0
+      for i in range(SAMPLES):
+        db_mean[j] += db[i, j]
+      db_mean[j] /= SAMPLES
+    w[:] = w - LEARNING_RATE * dw_mean
+    b[:] = b - LEARNING_RATE * db_mean
 
 @njit(parallel=True)
 def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -53,15 +73,16 @@ def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
   return z
 
 def init_and_train(data: np.ndarray, target: np.ndarray) -> None:
-  w, b, y = init_params()
-  w, b = least_squares(data, target)
+  w, b = init_params()
+  gradient_descent(data, target, w, b)
   prediction = forward(data, w, b)
   print(f"w: {w}")
   print(f"b: {b}")
   print(f"prediction: {prediction}")
   print(f"target: {target}")
   error = mse(prediction, target)
-  print(f"Error: {error}")
+  precision = (1 - error) * 100
+  print(f"Precision: {precision:.2f}%")
 
 def or_gate():
   print("\n=== OR ===")

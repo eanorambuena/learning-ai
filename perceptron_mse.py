@@ -28,19 +28,17 @@ def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
 
 @njit
 def init_params() -> tuple:
-  return (rand_bin((N, N)), rand_bin((N,)), rand_bin((N,)))
+  return (rand_bin((N, N)), rand_bin((N,)))
 
 @njit(parallel=True)
-def least_squares(data: np.ndarray, target: np.ndarray) -> tuple:
+def least_squares(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray) -> None:
   XtX = data.T @ data
   XtX_inv = np.linalg.inv(XtX)
   XtY = data.T @ target
-  w = XtX_inv @ XtY
+  w[:] = XtX_inv @ XtY
   residuals = target - data @ w
-  b = np.zeros(N, dtype=np.float32)
   for j in prange(N):
     b[j] = np.mean(residuals[:, j])
-  return (w, b)
 
 @njit(parallel=True)
 def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -53,15 +51,16 @@ def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
   return z
 
 def init_and_train(data: np.ndarray, target: np.ndarray) -> None:
-  w, b, y = init_params()
-  w, b = least_squares(data, target)
+  w, b = init_params()
+  least_squares(data, target, w, b)
   prediction = forward(data, w, b)
   print(f"w: {w}")
   print(f"b: {b}")
   print(f"prediction: {prediction}")
   print(f"target: {target}")
   error = mse(prediction, target)
-  print(f"Error: {error}")
+  precision = (1 - error) * 100
+  print(f"Precision: {precision:.2f}%")
 
 def or_gate():
   print("\n=== OR ===")

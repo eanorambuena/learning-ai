@@ -26,10 +26,6 @@ iY = tf.placeholder('float', shape=[None, 1], name='targets')
 nn = [2, 8, 1]  # Neurons in each layer
 lr = 0.1
 
-# PyTorch nn.Linear usa Kaiming uniform por defecto
-# Probemos con la misma inicialización
-initializer = tf.initializers.glorot_uniform()
-
 # Layer 1
 W1 = tf.Variable(tf.random_normal([nn[0], nn[1]]), name='W1')
 b1 = tf.Variable(tf.random_normal([nn[1]]), name='b1')

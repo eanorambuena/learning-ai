@@ -1,5 +1,6 @@
 import numpy as np
-from utils import init_and_train, identity, dIdentity
+from utils import init_and_train, identity, dIdentity, forward
+from visualize import plot_decision_boundary
 
 def divmod_gate(train_func, activation, d_activation):
   print("\n=== DIVMOD (quotient, remainder) ===")
@@ -13,7 +14,8 @@ def divmod_gate(train_func, activation, d_activation):
     [2, 0], [2, 1], [2, 2], [3, 0],
     [2, 2], [2, 3], [3, 0], [3, 1],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, activation, d_activation)
+  w, b = init_and_train(data, target, train_func, activation, d_activation)
+  plot_decision_boundary(data, target, w, b, forward, activation, "DIVMOD_Gate")
 
 def add_gate(train_func, activation, d_activation):
   print("\n=== ADD (a + b, a - b) ===")
@@ -27,7 +29,8 @@ def add_gate(train_func, activation, d_activation):
     [8, 2], [7, 5], [11, 3], [7, -3],
     [10, 6], [9, -3], [8, 0], [8, -6],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, activation, d_activation)
+  w, b = init_and_train(data, target, train_func, activation, d_activation)
+  plot_decision_boundary(data, target, w, b, forward, activation, "ADD_Gate")
 
 def maxmin_gate(train_func, activation, d_activation):
   print("\n=== MAXMIN (max, min) ===")
@@ -41,7 +44,8 @@ def maxmin_gate(train_func, activation, d_activation):
     [7, 3], [8, 5], [2, 2], [9, 1],
     [6, 4], [7, 3], [8, 4], [6, 6],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, activation, d_activation)
+  w, b = init_and_train(data, target, train_func, activation, d_activation)
+  plot_decision_boundary(data, target, w, b, forward, activation, "MAXMIN_Gate")
 
 def prod_gate(train_func, activation, d_activation):
   print("\n=== PROD (a * b, a // b) ===")
@@ -55,7 +59,8 @@ def prod_gate(train_func, activation, d_activation):
     [18, 2], [16, 1], [15, 2], [14, 5],
     [15, 0], [24, 2], [16, 4], [20, 0],
   ], dtype=np.float32)
-  init_and_train(data, target, train_func, activation, d_activation)
+  w, b = init_and_train(data, target, train_func, activation, d_activation)
+  plot_decision_boundary(data, target, w, b, forward, activation, "PROD_Gate")
 
 def test_numeric(train_func, activation=identity, d_activation=dIdentity):
   divmod_gate(train_func, activation, d_activation)

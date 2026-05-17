@@ -1,7 +1,7 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
-from utils import mean_reduce, mean_reduce_1d
+from utils import apply_gradients
 from test import test
 
 LEARNING_RATE: np.float32 = 0.1
@@ -24,10 +24,7 @@ def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.
   db = np.zeros((SAMPLES, N), dtype=np.float32)
   for epoch in range(EPOCHS):
     compute_gradients(data, target, w, b, dw, db, activation, d_activation)
-    dw_mean = mean_reduce(dw)
-    db_mean = mean_reduce_1d(db)
-    w[:] = w - LEARNING_RATE * dw_mean
-    b[:] = b - LEARNING_RATE * db_mean
+    apply_gradients(w, b, dw, db, LEARNING_RATE)
 
 if __name__ == "__main__":
   test(gradient_descent)

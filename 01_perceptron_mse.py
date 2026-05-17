@@ -5,6 +5,7 @@ from test import test
 
 @njit(parallel=True)
 def least_squares(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, activation, d_activation) -> None:
+  """Computes the least squares solution for linear regression: w = (X^T X)^{-1} X^T Y, b = mean(Y - Xw)"""
   SAMPLES, N = data.shape
   XtX = data.T @ data
   XtX_inv = np.linalg.inv(XtX)

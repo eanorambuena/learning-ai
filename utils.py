@@ -60,6 +60,13 @@ def mean_reduce_1d(arr: np.ndarray) -> np.ndarray:
     mean[j] = total / SAMPLES
   return mean
 
+@njit
+def apply_gradients(w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray, learning_rate: np.float32) -> None:
+  dw_mean = mean_reduce(dw)
+  db_mean = mean_reduce_1d(db)
+  w[:] = w - learning_rate * dw_mean
+  b[:] = b - learning_rate * db_mean
+
 @njit(parallel=True)
 def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray, activation) -> np.ndarray:
   SAMPLES, N = data.shape

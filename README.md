@@ -83,6 +83,33 @@ ls plots/
 - Puede resolver problemas no-linealmente separables (circulos, etc.)
 - La capa oculta permite representar funciones más complejas
 
+### RNNs Vanilla - Vanishing & Exploding Gradients (18)
+
+**Problema de diseño fundamental en RNNs vanilla:**
+
+Durante backpropagation through time (BPTT), el gradiente se multiplica por la matriz de pesos `Wh` para cada paso temporal:
+```
+dL/dW = dL/dh * dh/dW₁ * dW₁/dW₂ * ... (n veces, donde n = seq_length)
+```
+
+Si seq_length = 256 palabras:
+- **Vanishing Gradient**: Si derivada de tanh < 1, se multiplica 256 veces → gradiente → 0 (no aprende)
+- **Exploding Gradient**: Si valores de Wh > 1, se multiplica 256 veces → gradiente → ∞ (pesos explotan)
+
+**Por qué ocurre:**
+1. `tanh` devuelve valores en [-1, 1], derivada máx = 0.25
+2. Si Wh ≈ 0.95, después de 256 pasos: 0.95²⁵⁶ ≈ 0 (vanishing)
+3. Si Wh ≈ 1.05, después de 256 pasos: 1.05²⁵⁶ ≈ ∞ (exploding)
+
+**Síntomas observados en Notebook 18:**
+- train_acc crece muy lentamente (vanishing): 0.09 → 0.28 en 20 epochs
+- Regularización sola no lo resuelve (es un problema estructural, no de overfitting)
+
+**Soluciones implementadas en Notebook 19:**
+1. **Gradient Clipping** - Limita magnitud de gradientes durante actualización
+2. **Truncated BPTT** - Limita backprop a últimos N pasos (no todos los 256)
+3. **LeakyReLU** - Sustituye tanh por activación con derivada > 0 siempre
+
 ## Decisión de Framework
 
 Al implementar redes más complejas (04, 05), el código se volvió muy largo y difícil de mantener.

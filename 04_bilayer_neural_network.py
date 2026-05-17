@@ -6,8 +6,7 @@ This file was generated with AI assistance.
 from numba import njit, prange
 import numpy as np
 from utils import sigmoid, dSigmoid, identity, dIdentity
-from test import test
-from test_numeric import test_numeric
+from visualize import plot_bilayer_boundary
 
 INPUT_N: np.int32 = 2
 HIDDEN_N: np.int32 = 4
@@ -138,6 +137,7 @@ def or_gate_bilayer():
   prediction = forward_bilayer(data, w1, b1, w2, b2, sigmoid)
   print(f"prediction: {prediction}")
   print(f"target: {target}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, sigmoid, "OR_Bilayer")
 
 def and_gate_bilayer():
   print("\n=== AND (Bilayer) ===")
@@ -148,6 +148,7 @@ def and_gate_bilayer():
   prediction = forward_bilayer(data, w1, b1, w2, b2, sigmoid)
   print(f"prediction: {prediction}")
   print(f"target: {target}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, sigmoid, "AND_Bilayer")
 
 def xor_gate_bilayer():
   print("\n=== XOR (Bilayer) ===")
@@ -158,6 +159,7 @@ def xor_gate_bilayer():
   prediction = forward_bilayer(data, w1, b1, w2, b2, sigmoid)
   print(f"prediction: {prediction}")
   print(f"target: {target}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, sigmoid, "XOR_Bilayer")
 
 def test_bilayer():
   or_gate_bilayer()
@@ -169,20 +171,97 @@ def add_gate_bilayer():
   data = np.array([
     [1, 2], [2, 3], [3, 1], [4, 2],
     [5, 3], [6, 1], [7, 4], [2, 5],
+    [8, 2], [3, 6], [4, 4], [1, 7],
   ], dtype=np.float32)
   target = np.array([
     [3, -1], [5, -1], [4, 2], [6, 2],
     [8, 2], [7, 5], [11, 3], [7, -3],
+    [10, 6], [9, -3], [8, 0], [8, -6],
   ], dtype=np.float32)
   w1, b1, w2, b2 = init_params_bilayer()
   gradient_descent_bilayer(data, target, w1, b1, w2, b2, identity, dIdentity)
   prediction = forward_bilayer(data, w1, b1, w2, b2, identity)
   print(f"prediction: {prediction}")
   print(f"target: {target}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, identity, "ADD_Bilayer")
+
+def maxmin_gate_bilayer():
+  print("\n=== MAXMIN (Bilayer) ===")
+  data = np.array([
+    [3, 1], [2, 5], [4, 2], [1, 6],
+    [7, 3], [5, 8], [2, 2], [9, 1],
+    [4, 6], [3, 7], [8, 4], [6, 6],
+  ], dtype=np.float32)
+  target = np.array([
+    [3, 1], [5, 2], [4, 2], [6, 1],
+    [7, 3], [8, 5], [2, 2], [9, 1],
+    [6, 4], [7, 3], [8, 4], [6, 6],
+  ], dtype=np.float32)
+  w1, b1, w2, b2 = init_params_bilayer()
+  gradient_descent_bilayer(data, target, w1, b1, w2, b2, identity, dIdentity)
+  prediction = forward_bilayer(data, w1, b1, w2, b2, identity)
+  print(f"prediction: {prediction}")
+  print(f"target: {target}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, identity, "MAXMIN_Bilayer")
+
+def prod_gate_bilayer():
+  print("\n=== PROD (Bilayer) ===")
+  data = np.array([
+    [2, 3], [4, 2], [3, 2], [5, 2],
+    [6, 3], [4, 4], [5, 3], [7, 2],
+    [3, 5], [6, 4], [8, 2], [4, 5],
+  ], dtype=np.float32)
+  target = np.array([
+    [6, 0], [8, 2], [6, 1], [10, 3],
+    [18, 2], [16, 1], [15, 2], [14, 5],
+    [15, 0], [24, 2], [16, 4], [20, 0],
+  ], dtype=np.float32)
+  w1, b1, w2, b2 = init_params_bilayer()
+  gradient_descent_bilayer(data, target, w1, b1, w2, b2, identity, dIdentity)
+  prediction = forward_bilayer(data, w1, b1, w2, b2, identity)
+  print(f"prediction: {prediction}")
+  print(f"target: {target}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, identity, "PROD_Bilayer")
 
 def test_numeric_bilayer():
   add_gate_bilayer()
+  maxmin_gate_bilayer()
+  prod_gate_bilayer()
+
+def circle_gate_bilayer():
+  print("\n=== CIRCLE (inner vs outer) ===")
+  np.random.seed(42)
+  inner_radius = 0.4
+  outer_radius = 0.8
+  num_inner = 30
+  num_outer = 60
+  data_list = []
+  target_list = []
+  for _ in range(num_inner):
+    angle = np.random.uniform(0, 2 * np.pi)
+    r = np.random.uniform(0, inner_radius)
+    x = r * np.cos(angle)
+    y = r * np.sin(angle)
+    data_list.append([x, y])
+    target_list.append([0, 0])
+  for _ in range(num_outer):
+    angle = np.random.uniform(0, 2 * np.pi)
+    r = np.random.uniform(outer_radius - 0.15, outer_radius + 0.15)
+    x = r * np.cos(angle)
+    y = r * np.sin(angle)
+    data_list.append([x, y])
+    target_list.append([1, 1])
+  data = np.array(data_list, dtype=np.float32)
+  target = np.array(target_list, dtype=np.float32)
+  w1, b1, w2, b2 = init_params_bilayer()
+  for _ in range(3):
+    gradient_descent_bilayer(data, target, w1, b1, w2, b2, sigmoid, dSigmoid)
+  prediction = forward_bilayer(data, w1, b1, w2, b2, sigmoid)
+  print(f"prediction (first 10): {prediction[:10]}")
+  print(f"target (first 10): {target[:10]}")
+  plot_bilayer_boundary(data, target, w1, b1, w2, b2, sigmoid, "CIRCLE_Bilayer")
 
 if __name__ == "__main__":
   test_bilayer()
   test_numeric_bilayer()
+  circle_gate_bilayer()

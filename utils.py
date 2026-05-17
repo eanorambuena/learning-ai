@@ -26,10 +26,17 @@ def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
 def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
   return np.mean((prediction - target) ** 2)
 
-def print_results(w: np.ndarray, b: np.ndarray, prediction: np.ndarray, target: np.ndarray, error: np.ndarray) -> None:
+def print_results(w: np.ndarray, b: np.ndarray, prediction: np.ndarray, target: np.ndarray) -> None:
+  error = mse(prediction, target)
   print(f"w: {w}")
   print(f"b: {b}")
   print(f"prediction: {prediction}")
   print(f"target: {target}")
   precision = (1 - error) * 100
   print(f"Precision: {precision:.2f}%")
+
+def init_and_train(data: np.ndarray, target: np.ndarray, train_func, forward) -> None:
+  w, b = init_params()
+  train_func(data, target, w, b)
+  prediction = forward(data, w, b)
+  print_results(w, b, prediction, target)

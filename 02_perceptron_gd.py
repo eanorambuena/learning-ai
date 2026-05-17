@@ -1,7 +1,7 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
-from utils import rand_bin, mse, print_results
+from utils import init_params, forward, mse, print_results
 
 N: np.int32 = 2
 SAMPLES: np.int32 = 4
@@ -20,10 +20,6 @@ OR:   target = [[0,0], [1,1], [1,1], [1,1]]
 AND:  target = [[0,0], [0,0], [0,0], [1,1]]
 XOR:  target = [[0,0], [1,1], [1,1], [0,0]]
 """
-
-@njit
-def init_params() -> tuple:
-  return (rand_bin((N, N)), rand_bin((N,)))
 
 @njit(parallel=True)
 def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray) -> None:
@@ -55,19 +51,11 @@ def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.
     w[:] = w - LEARNING_RATE * dw_mean
     b[:] = b - LEARNING_RATE * db_mean
 
-@njit(parallel=True)
-def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
-  z = np.zeros((SAMPLES, N), dtype=np.float32)
-  for i in prange(SAMPLES):
-    for j in range(N):
-      z[i, j] = b[j]
-      for k in range(N):
-        z[i, j] += w[j, k] * data[i, k]
-  return z
-
 def init_and_train(data: np.ndarray, target: np.ndarray) -> None:
   w, b = init_params()
+  
   gradient_descent(data, target, w, b)
+
   prediction = forward(data, w, b)
   error = mse(prediction, target)
   print_results(w, b, prediction, target, error)

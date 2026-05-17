@@ -1,7 +1,7 @@
 #!/home/eanorambuena/miniconda/envs/learning-ai/bin/python
 from numba import njit, prange
 import numpy as np
-from utils import rand_bin, sigmoid, dSigmoid_dz, mse, print_results
+from utils import init_params, forward, mse, print_results
 
 N: np.int32 = 2
 SAMPLES: np.int32 = 4
@@ -22,12 +22,13 @@ XOR:  target = [[0,0], [1,1], [1,1], [0,0]]
 """
 
 @njit
-def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:
-  return np.mean((prediction - target) ** 2)
+def sigmoid(x: np.ndarray) -> np.ndarray:
+  return 1 / (1 + np.exp(-x))
 
 @njit
-def init_params() -> tuple:
-  return (rand_bin((N, N)), rand_bin((N,)))
+def dSigmoid_dz(x: np.ndarray) -> np.ndarray:
+  s = sigmoid(x)
+  return s * (1 - s)
 
 @njit(parallel=True)
 def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray) -> None:

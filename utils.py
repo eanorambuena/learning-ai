@@ -1,18 +1,26 @@
 import numpy as np
-from numba import njit
+from numba import njit, prange
+
+N: np.int32 = 2
+SAMPLES: np.int32 = 4
 
 @njit
 def rand_bin(shape: tuple) -> np.ndarray:
   return np.clip(np.random.rand(*shape), 0, 1).astype(np.float32)
 
 @njit
-def sigmoid(x: np.ndarray) -> np.ndarray:
-  return 1 / (1 + np.exp(-x))
+def init_params() -> tuple:
+  return (rand_bin((N, N)), rand_bin((N,)))
 
-@njit
-def dSigmoid_dz(x: np.ndarray) -> np.ndarray:
-  s = sigmoid(x)
-  return s * (1 - s)
+@njit(parallel=True)
+def forward(data: np.ndarray, w: np.ndarray, b: np.ndarray) -> np.ndarray:
+  z = np.zeros((SAMPLES, N), dtype=np.float32)
+  for i in prange(SAMPLES):
+    for j in range(N):
+      z[i, j] = b[j]
+      for k in range(N):
+        z[i, j] += w[j, k] * data[i, k]
+  return z
 
 @njit
 def mse(prediction: np.ndarray, target: np.ndarray) -> np.ndarray:

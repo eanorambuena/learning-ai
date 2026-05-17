@@ -6,12 +6,12 @@ from test import test
 from test_numeric import test_numeric
 
 N: np.int32 = 2
-SAMPLES: np.int32 = 4
-LEARNING_RATE: np.float32 = 0.1
-EPOCHS: np.int32 = 1000
+LEARNING_RATE: np.float32 = 0.01
+EPOCHS: np.int32 = 5000
 
 @njit(parallel=True)
 def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, dw: np.ndarray, db: np.ndarray, activation, d_activation) -> None:
+  SAMPLES, N = data.shape
   z = np.zeros(N, dtype=np.float32)
   a = np.zeros(N, dtype=np.float32)
   da_dz = np.zeros(N, dtype=np.float32)
@@ -30,6 +30,7 @@ def compute_gradients(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np
 
 @njit
 def gradient_descent(data: np.ndarray, target: np.ndarray, w: np.ndarray, b: np.ndarray, activation, d_activation) -> None:
+  SAMPLES, N = data.shape
   dw = np.zeros((SAMPLES, N, N), dtype=np.float32)
   db = np.zeros((SAMPLES, N), dtype=np.float32)
   for epoch in range(EPOCHS):

@@ -3,3 +3,5 @@ numba>=0.65
 matplotlib>=3.0
 torch>=2.0
 scikit-learn>=1.0
+pandas>=1.0
+nbformat>=4.2

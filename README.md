@@ -196,6 +196,7 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 | 21_v2 | Self-Attention manual (window=32) | 32 | 1 | 0.104 |
 | **22** | **Mini Transformer (3 capas + FFN, last token)** | **5** | **1** | **0.641** |
 | **22_v2** | **Mini Transformer (trainable embeddings)** | **5** | **1** | **0.755** |
+| **23** | **Mini Transformer (warmup + label smooth)** | **5** | **1** | **?** |
 
 ### Notebook 22 — Mini Transformer (decoder-style, causal + last token)
 
@@ -224,7 +225,16 @@ El GlobalAvgPool promediaba la basura de tokens iniciales con poca información 
 | 4 | **Self-attention necesita profundidad para ventanas grandes** | 1 capa con window=32 (21_v2) da 0.104; 3 capas + FFN (22) dan 0.641 |
 | 5 | **Más parámetros no garantiza mejor accuracy** | 21 (58K, 0.405) vs 20 (128, 0.575) — la arquitectura importa más que el tamaño |
 
-**Próximo paso:** Probar 21_v3 (self-attention + trainable embeddings) para ver si también escala como 22_v2.
+**Próximo paso:** Notebook 23 — añadir LR Warmup + Label Smoothing a 22_v2.
+
+### Mejoras futuras (no cubiertas aún)
+
+| Técnica | Paper | Notebook propuesto | Efecto esperado |
+|---------|-------|:------------------:|:---------------:|
+| **AdamW** | Loshchilov & Hutter (2019) | 24 | Regularización vía weight decay desacoplado del LR |
+| **Gradient Accumulation** | — | — | Batch size efectivo más grande sin OOM |
+| **Beam Search** | — | — | Mejor generación en inference (no solo top-1) |
+| **Dataset más grande** | — | 25 | Más datos → mejor generalización |
 
 Al implementar redes más complejas (04, 05), el código se volvió muy largo y difícil de mantener.
 Evaluamos 5 opciones:

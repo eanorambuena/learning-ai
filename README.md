@@ -195,6 +195,7 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 | 21 | Self-Attention manual | 5 | 1 | 0.405 |
 | 21_v2 | Self-Attention manual (window=32) | 32 | 1 | 0.104 |
 | **22** | **Mini Transformer (3 capas + FFN, last token)** | **5** | **1** | **0.641** |
+| **22_v2** | **Mini Transformer (trainable embeddings)** | **5** | **1** | **0.755** |
 
 ### Notebook 22 — Mini Transformer (decoder-style, causal + last token)
 
@@ -204,6 +205,14 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 El GlobalAvgPool promediaba la basura de tokens iniciales con poca información (por la máscara causal); el último token ve todo el contexto y es el único que importa para predecir la siguiente palabra.
 
 **Lección:** La arquitectura decoder de GPT (causal + last token) es correcta. Con 3 capas + FFN + causal mask + last token, el Transformer mínimo supera al RNN con atención.
+
+### Notebook 22_v2 — Mini Transformer (trainable embeddings)
+
+**Resultado: 0.755** — ✅ **nuevo mejor resultado**, salto de +0.114 sobre 22.
+
+**Cambio clave:** `trainable=True` en el embedding Word2Vec (269K params entrenables totales).
+
+**Lección:** El embedding congelado era el principal cuello de botella. Con embeddings entrenables, el Transformer ajusta las representaciones a la tarea de next-word prediction.
 
 ## Decisión de Framework
 

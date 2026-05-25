@@ -176,13 +176,15 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 
 ### Notebook 22 — Self-Attention con window=32
 
-**Motivación:** Notebook 19 intentó window=64 con RNN y falló (10.5%). Self-attention NO sufre vanishing gradient, debería escalar a ventanas grandes.
+**Motivación:** Notebook 19 intentó window=64 con RNN y falló (10.5% con step=5). Self-attention NO sufre vanishing gradient, debería escalar a ventanas grandes.
 
-**Hipótesis:** Self-attention con window=32 supera el 0.403 de la RNN con window=5.
+**Resultado:** Fracaso — **0.104**. Overfitting temprano (época 7 de 100). train_acc subía, val_acc caía.
 
-**Incluye:** Heatmap 32×32, distribución de atención por posición, comparación directa contra notebook 19.
+**Causa:** 1 sola capa de self-attention no tiene suficiente capacidad para 32 tokens. El modelo memoriza el training set pero no generaliza.
 
-**Progresión completa (18 → 22):**
+**Lección:** Self-attention sola no escala a ventanas grandes. Se necesitan **múltiples capas apiladas** + **feed-forward networks** por capa — como un Transformer real.
+
+### Progresión completa (18 → 22)
 
 | Notebook | Modelo | Window | step | Test Accuracy |
 |----------|--------|:-----:|:----:|:------------:|
@@ -191,7 +193,41 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 | 19 | RNN + gradient clipping | 64 | 1 (corregido) | 0.420 |
 | 20 | RNN + Bahdanau Attention | 5 | 1 | **0.575** |
 | 21 | Self-Attention manual | 5 | 1 | 0.405 |
-| **22** | **Self-Attention manual** | **32** | **1** | **pendiente** |
+| 22 | Self-Attention manual | 32 | 1 | 0.104 |
+| **23** | **Mini Transformer (3 capas + FFN)** | **32** | **1** | **pendiente** |
+
+### Notebook 23 — Mini Transformer (Stacked SA + FFN + Causal Mask)
+
+**Motivación:** Notebook 22 (1 capa self-attention, window=32) fracasó (0.104). Ahora apilamos 3 bloques Transformer completos.
+
+**Arquitectura (diagrama incluido en notebook):**
+```
+Input → Embedding + PosEncoding
+  → [Block 1: Self-Attention(causal) → Add&Norm → FFN → Add&Norm]
+  → [Block 2: Self-Attention(causal) → Add&Norm → FFN → Add&Norm]
+  → [Block 3: Self-Attention(causal) → Add&Norm → FFN → Add&Norm]
+  → GlobalAveragePooling → Dense → softmax
+```
+
+**Nuevo respecto a notebooks anteriores:**
+1. **Stacked layers** (3 bloques) — profundidad real
+2. **FFN por capa** — `Dense(128, ReLU) → Dense(64)` en cada bloque
+3. **Causal mask** — atención triangular (lower triangular), cada token solo ve previos
+4. **Diagrama de arquitectura** — generado con matplotlib, similar al paper
+
+**Lo que ya tenemos (coincide con Transformer real):**
+- Positional Encoding sinusoidal ✓
+- Multi-Head Self-Attention (4 heads) ✓
+- Residual connections + LayerNorm ✓
+- FFN por capa ✓
+- Causal masking ✓
+- Dropout ✓
+
+**Lo que falta (para un Transformer completo):**
+- Label smoothing
+- Learning rate warmup
+- 6+ capas (vs 3)
+- Embeddings entrenables (vs frozen Word2Vec)
 
 ## Decisión de Framework
 

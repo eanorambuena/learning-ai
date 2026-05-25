@@ -8,7 +8,7 @@
 | Rows | 661 | 29,567 |
 | Total chars | ~187K | ~519M |
 | Vocab | 3,291 (c≥2) | 10,000 (top 10K, c≥5) |
-| Embed dim | 64 | 64 |
+| Embed dim | 64 | **128** |
 | Negative sampling | loop Python | vectorizado (NumPy) |
 
 ## Cambios de implementación

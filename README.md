@@ -191,22 +191,19 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 | 18 | RNN vanilla | 5 | 1 | 0.403 |
 | 19 | RNN + gradient clipping | 64 | 5 (original) | 0.105 |
 | 19 | RNN + gradient clipping | 64 | 1 (corregido) | 0.420 |
-| 20 | RNN + Bahdanau Attention | 5 | 1 | **0.575** |
+| 20 | RNN + Bahdanau Attention | 5 | 1 | 0.575 |
 | 21 | Self-Attention manual | 5 | 1 | 0.405 |
-| 22 | Self-Attention manual | 32 | 1 | 0.104 |
-| **23** | **Mini Transformer (3 capas + FFN)** | **5** | **1** | **0.103** |
+| 21_v2 | Self-Attention manual (window=32) | 32 | 1 | 0.104 |
+| **22** | **Mini Transformer (3 capas + FFN, last token)** | **5** | **1** | **0.641** |
 
-### Notebook 23 — Mini Transformer (Stacked SA + FFN + Causal Mask)
+### Notebook 22 — Mini Transformer (decoder-style, causal + last token)
 
-**Resultado: 0.103** — mismo desempeño aleatorio que 22. Ni 3 capas apiladas + FFN salvaron el modelo.
+**Resultado: 0.641** — ✅ **nuevo mejor resultado**, supera el RNN+Bahdanau (0.575).
 
-**Conclusiones clave:**
+**Cambio clave:** Reemplazar `GlobalAveragePooling1D()` por `x[:, -1, :]` (último token).
+El GlobalAvgPool promediaba la basura de tokens iniciales con poca información (por la máscara causal); el último token ve todo el contexto y es el único que importa para predecir la siguiente palabra.
 
-1. **Window=5 tampoco funcionó** — el problema no es la ventana grande. Con 5 tokens (mismos que 20-21), el Transformer de 3 capas dio 0.103 vs 0.405 de una sola capa de self-attention (21) y 0.575 del RNN+Bahdanau (20).
-
-2. **El embedding congelado es el cuello de botella** — todos los modelos comparten las mismas 3291×64 representaciones Word2Vec fijas. El Transformer no puede adaptar los embeddings a la tarea.
-
-3. **Self-attention pura necesita más datos que RNN** — RNN tiene sesgo secuencial fuerte (aprende con ~23K secuencias). Self-attention es más flexible pero necesita órdenes de magnitud más datos para converger.
+**Lección:** La arquitectura decoder de GPT (causal + last token) es correcta. Con 3 capas + FFN + causal mask + last token, el Transformer mínimo supera al RNN con atención.
 
 ## Decisión de Framework
 

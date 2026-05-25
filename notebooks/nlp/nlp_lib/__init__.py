@@ -3,7 +3,7 @@ from tensorflow.keras import layers
 
 
 class Word2VecLoader:
-    def __init__(self, version='v2', trainable=True):
+    def __init__(self, version='v3', trainable=True):
         path = f'../myWord2Vec/{version}/'
         target_embeddings = np.load(path + 'target_embeddings.npy')
         context_embeddings = np.load(path + 'context_embeddings.npy')

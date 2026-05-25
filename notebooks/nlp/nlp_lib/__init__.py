@@ -3,7 +3,8 @@ from tensorflow.keras import layers
 
 
 class Word2VecLoader:
-    def __init__(self, path='../myWord2Vec/v2/'):
+    def __init__(self, version='v2', trainable=True):
+        path = f'../myWord2Vec/{version}/'
         target_embeddings = np.load(path + 'target_embeddings.npy')
         context_embeddings = np.load(path + 'context_embeddings.npy')
         text_vocab = np.load(path + 'text_vocab.npy', allow_pickle=True).item()
@@ -17,7 +18,7 @@ class Word2VecLoader:
             input_dim=target_embeddings.shape[0],
             output_dim=target_embeddings.shape[1],
             weights=[target_embeddings],
-            trainable=True,
+            trainable=trainable,
             name='trainable_pretrained_embedding'
         )
         print('Embeddings cargados:', target_embeddings.shape, context_embeddings.shape)

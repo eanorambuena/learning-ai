@@ -53,7 +53,8 @@ make run file=basics/01_perceptron_mse.py
 │   └── myWord2Vec/             # Embeddings Word2Vec por versión
 │       ├── v1/                 # 11–15 original (gaianet/london, vocab 3K)
 │       ├── v2/                 # 15_v2 (gaianet/london, vocab 8K)
-│       └── v3/                 # 15_v3 (wikitext-103, vocab 10K)
+│       └── v3/                 # 15_v3 (wikitext-103, vocab 10K, dim 128)
+│           └── README.md       # Detalles de implementación
 ├── Makefile
 ├── requirements.txt
 └── README.md
@@ -78,4 +79,4 @@ make run file=basics/01_perceptron_mse.py
 1. **Embedding trainable es el factor dominante** — 21→21_v3 (+0.344), 22→22_v2 (+0.114)
 2. **GlobalAvgPooling + causal mask es destructivo** — último token (22) supera al avg de 0.103 a 0.641
 3. **RNN + Bahdanau Attention** — 0.575 con solo 128 params entrenables
-4. **v3 embeddings** — wikitext-103 con vocab 10K, dim 64
+4. **v3 embeddings** — wikitext-103 con vocab 10K, dim 128. Ver [`notebooks/myWord2Vec/v3/README.md`](notebooks/myWord2Vec/v3/README.md) para detalles.

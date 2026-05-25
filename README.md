@@ -110,6 +110,45 @@ Si seq_length = 256 palabras:
 2. **Truncated BPTT** - Limita backprop a últimos N pasos (no todos los 256)
 3. **LeakyReLU** - Sustituye tanh por activación con derivada > 0 siempre
 
+### Notebook 19 vs 18 — No hubo mejora
+
+| Métrica | 18 (baseline, window=5) | 19 (gradient clipping, window=64) |
+|---------|------------------------|-----------------------------------|
+| Secuencias | 23,646 | 4,718 |
+| Épocas entrenadas | ~68 | ~11 |
+| Test accuracy | **0.403** | **0.105** |
+
+**Por qué falló 19:**
+1. **Ventana 64 pasos** — demasiado larga para una RNN vanilla; el gradiente se desvanece igual
+2. **Menos secuencias** — 4,718 vs 23,646 (menos datos = menos aprendizaje)
+3. **Truncated BPTT (32/64)** — solo retropropaga la mitad del contexto, contradictorio
+4. **Stagnation temprana** — early stopping en época 11 porque val_accuracy no subió de 10.5%
+
+**Lección:** Las micro-optimizaciones (gradient clipping, LeakyReLU, truncation) no resuelven la limitación **estructural** de las RNN vanilla: comprimir toda una secuencia en un solo vector `h_T`.
+
+### Notebook 20 — RNN + Attention
+
+**Salto cualitativo:** En vez de parchar la RNN, cambiamos la arquitectura. Attention permite que el modelo "mire" todos los estados ocultos `h_1..h_T` y decida cuáles son relevantes mediante pesos aprendidos.
+
+**Cómo funciona Bahdanau Attention:**
+```
+h_1..h_T  = estados ocultos de cada paso (los guardamos TODOS)
+score_i   = v^T * tanh(W_att * h_i + W_att * h_T)  # relevancia de h_i
+alpha_i   = softmax(score_i)                         # normalización a [0,1]
+c         = sum(alpha_i * h_i)                       # context vector ponderado
+output    = softmax(Dense([c; h_T]))                  # predice con contexto + final
+```
+
+**Ventaja:** La atención añade ~5% más parámetros pero permite que el gradiente fluya directamente a cualquier paso, sin depender de la multiplicación recurrente.
+
+| Notebook | Modelo | Test Accuracy | Mejora vs 18 |
+|----------|--------|---------------|--------------|
+| 18 | RNN vanilla | 0.403 | — |
+| 19 | RNN + clipping | 0.105 | -74% |
+| **20** | **RNN + Attention** | **0.575** | **+43%** |
+
+**Resultado:** Atención (20) supera significativamente a la RNN vanilla (18). Pasa de 40.3% a 57.5% — una mejora de +17 puntos porcentuales. Esto confirma que el **salto arquitectónico** (añadir atención) es más efectivo que las micro-optimizaciones de gradiente (19).
+
 ## Decisión de Framework
 
 Al implementar redes más complejas (04, 05), el código se volvió muy largo y difícil de mantener.

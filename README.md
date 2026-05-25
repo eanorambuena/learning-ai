@@ -214,7 +214,17 @@ El GlobalAvgPool promediaba la basura de tokens iniciales con poca información 
 
 **Lección:** El embedding congelado era el principal cuello de botella. Con embeddings entrenables, el Transformer ajusta las representaciones a la tarea de next-word prediction.
 
-## Decisión de Framework
+## Hallazgos clave
+
+| # | Hallazgo | Evidencia |
+|---|----------|-----------|
+| 1 | **Embedding congelado limita el techo** | 22→22_v2: 0.641→0.755 solo con `trainable=True` |
+| 2 | **GlobalAvgPooling + Causal Mask es trampa mortal** | El último token (22) supera al avg (23 original) de 0.103 a 0.641 |
+| 3 | **RNN + Bahdanau Attention es imbatible con pocos datos** | 20 logró 0.575 con solo 128 params entrenables, superó a self-attention con 58K |
+| 4 | **Self-attention necesita profundidad para ventanas grandes** | 1 capa con window=32 (21_v2) da 0.104; 3 capas + FFN (22) dan 0.641 |
+| 5 | **Más parámetros no garantiza mejor accuracy** | 21 (58K, 0.405) vs 20 (128, 0.575) — la arquitectura importa más que el tamaño |
+
+**Próximo paso:** Probar 21_v3 (self-attention + trainable embeddings) para ver si también escala como 22_v2.
 
 Al implementar redes más complejas (04, 05), el código se volvió muy largo y difícil de mantener.
 Evaluamos 5 opciones:

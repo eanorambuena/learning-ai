@@ -194,40 +194,19 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 | 20 | RNN + Bahdanau Attention | 5 | 1 | **0.575** |
 | 21 | Self-Attention manual | 5 | 1 | 0.405 |
 | 22 | Self-Attention manual | 32 | 1 | 0.104 |
-| **23** | **Mini Transformer (3 capas + FFN)** | **32** | **1** | **pendiente** |
+| **23** | **Mini Transformer (3 capas + FFN)** | **5** | **1** | **0.103** |
 
 ### Notebook 23 — Mini Transformer (Stacked SA + FFN + Causal Mask)
 
-**Motivación:** Notebook 22 (1 capa self-attention, window=32) fracasó (0.104). Ahora apilamos 3 bloques Transformer completos.
+**Resultado: 0.103** — mismo desempeño aleatorio que 22. Ni 3 capas apiladas + FFN salvaron el modelo.
 
-**Arquitectura (diagrama incluido en notebook):**
-```
-Input → Embedding + PosEncoding
-  → [Block 1: Self-Attention(causal) → Add&Norm → FFN → Add&Norm]
-  → [Block 2: Self-Attention(causal) → Add&Norm → FFN → Add&Norm]
-  → [Block 3: Self-Attention(causal) → Add&Norm → FFN → Add&Norm]
-  → GlobalAveragePooling → Dense → softmax
-```
+**Conclusiones clave:**
 
-**Nuevo respecto a notebooks anteriores:**
-1. **Stacked layers** (3 bloques) — profundidad real
-2. **FFN por capa** — `Dense(128, ReLU) → Dense(64)` en cada bloque
-3. **Causal mask** — atención triangular (lower triangular), cada token solo ve previos
-4. **Diagrama de arquitectura** — generado con matplotlib, similar al paper
+1. **Window=5 tampoco funcionó** — el problema no es la ventana grande. Con 5 tokens (mismos que 20-21), el Transformer de 3 capas dio 0.103 vs 0.405 de una sola capa de self-attention (21) y 0.575 del RNN+Bahdanau (20).
 
-**Lo que ya tenemos (coincide con Transformer real):**
-- Positional Encoding sinusoidal ✓
-- Multi-Head Self-Attention (4 heads) ✓
-- Residual connections + LayerNorm ✓
-- FFN por capa ✓
-- Causal masking ✓
-- Dropout ✓
+2. **El embedding congelado es el cuello de botella** — todos los modelos comparten las mismas 3291×64 representaciones Word2Vec fijas. El Transformer no puede adaptar los embeddings a la tarea.
 
-**Lo que falta (para un Transformer completo):**
-- Label smoothing
-- Learning rate warmup
-- 6+ capas (vs 3)
-- Embeddings entrenables (vs frozen Word2Vec)
+3. **Self-attention pura necesita más datos que RNN** — RNN tiene sesgo secuencial fuerte (aprende con ~23K secuencias). Self-attention es más flexible pero necesita órdenes de magnitud más datos para converger.
 
 ## Decisión de Framework
 

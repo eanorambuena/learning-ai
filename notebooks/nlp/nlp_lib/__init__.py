@@ -13,6 +13,7 @@ class Word2VecLoader:
         self.final_embeddings = (target_embeddings + context_embeddings) / 2
         self.text_vocab = text_vocab
         self.idx_to_word = {idx: word for word, idx in text_vocab.items()}
+        self.vocab_size = target_embeddings.shape[0]
         self.embedding_dim = target_embeddings.shape[1]
         self.embedding_layer = layers.Embedding(
             input_dim=target_embeddings.shape[0],

@@ -110,21 +110,26 @@ Si seq_length = 256 palabras:
 2. **Truncated BPTT** - Limita backprop a últimos N pasos (no todos los 256)
 3. **LeakyReLU** - Sustituye tanh por activación con derivada > 0 siempre
 
-### Notebook 19 vs 18 — No hubo mejora
+### Notebook 19 — RNN + gradient clipping (window=64)
 
-| Métrica | 18 (baseline, window=5) | 19 (gradient clipping, window=64) |
-|---------|------------------------|-----------------------------------|
-| Secuencias | 23,646 | 4,718 |
-| Épocas entrenadas | ~68 | ~11 |
-| Test accuracy | **0.403** | **0.105** |
+**Problema identificado (original):** Usaba `step=5`, generando solo 4,718 secuencias — 5x menos que los demás notebooks.
 
-**Por qué falló 19:**
-1. **Ventana 64 pasos** — demasiado larga para una RNN vanilla; el gradiente se desvanece igual
-2. **Menos secuencias** — 4,718 vs 23,646 (menos datos = menos aprendizaje)
-3. **Truncated BPTT (32/64)** — solo retropropaga la mitad del contexto, contradictorio
-4. **Stagnation temprana** — early stopping en época 11 porque val_accuracy no subió de 10.5%
+**Corrección:** Cambiado a `step=1` → 23,587 secuencias. Resultados actualizados:
 
-**Lección:** Las micro-optimizaciones (gradient clipping, LeakyReLU, truncation) no resuelven la limitación **estructural** de las RNN vanilla: comprimir toda una secuencia en un solo vector `h_T`.
+| Métrica | 18 (baseline, w=5) | 19 (step=5, w=64) | 19 corregido (step=1, w=64) |
+|---------|:----------------:|:-----------------:|:--------------------------:|
+| Secuencias | 23,646 | 4,718 | **23,587** |
+| Épocas entrenadas | ~68 | ~11 | **~73** |
+| Test accuracy (tanh) | 0.403 | 0.105 | **0.420** |
+| Test accuracy (LeakyReLU) | — | 0.105 | **0.112** |
+
+**Conclusiones:**
+1. El fracaso inicial de 19 fue por `step=5` (pocos datos), no por la ventana de 64
+2. Con datos suficientes, gradient clipping + truncated BPTT SÍ funciona (0.420 vs 0.403)
+3. LeakyReLU sigue siendo peor que tanh para este caso (0.112)
+4. La RNN con window=64 logra 0.420, pero aún por debajo de attention (0.575)
+
+**Lección:** Las micro-optimizaciones ayudan si hay datos suficientes, pero attention sigue siendo superior.
 
 ### Notebook 20 — RNN + Attention
 
@@ -148,6 +153,45 @@ output    = softmax(Dense([c; h_T]))                  # predice con contexto + f
 | **20** | **RNN + Attention** | **0.575** | **+43%** |
 
 **Resultado:** Atención (20) supera significativamente a la RNN vanilla (18). Pasa de 40.3% a 57.5% — una mejora de +17 puntos porcentuales. Esto confirma que el **salto arquitectónico** (añadir atención) es más efectivo que las micro-optimizaciones de gradiente (19).
+
+### Notebook 21 — Self-Attention Manual (sin RNN, window=5)
+
+**Motivación:** Si atención sobre RNN ya da +43%, ¿qué pasa si eliminamos la RNN por completo? Self-attention (Transformer) procesa toda la secuencia en paralelo, sin dependencia secuencial.
+
+**Arquitectura (manual, sin built-in de Keras):**
+```
+Input (5 tokens) -> Embedding -> + Positional Encoding
+  -> Q=Wq(x), K=Wk(x), V=Wv(x)
+  -> scores = Q·K^T / sqrt(d_k) -> softmax -> att_weights·V
+  -> Concat heads -> LayerNorm + residual
+  -> GlobalAveragePooling -> Dense -> softmax
+```
+
+**Por qué manual en vez de `layers.MultiHeadAttention`:**
+- Más rápido para secuencias cortas (sin overhead interno)
+- Didáctico: se ve exactamente el scaled dot-product
+- Fácil extraer att_weights para heatmaps
+
+**Incluye:** Heatmaps de atención (matriz 5×5), balance recibida/emitida, comparación entre contextos.
+
+### Notebook 22 — Self-Attention con window=32
+
+**Motivación:** Notebook 19 intentó window=64 con RNN y falló (10.5%). Self-attention NO sufre vanishing gradient, debería escalar a ventanas grandes.
+
+**Hipótesis:** Self-attention con window=32 supera el 0.403 de la RNN con window=5.
+
+**Incluye:** Heatmap 32×32, distribución de atención por posición, comparación directa contra notebook 19.
+
+**Progresión completa (18 → 22):**
+
+| Notebook | Modelo | Window | step | Test Accuracy |
+|----------|--------|:-----:|:----:|:------------:|
+| 18 | RNN vanilla | 5 | 1 | 0.403 |
+| 19 | RNN + gradient clipping | 64 | 5 (original) | 0.105 |
+| 19 | RNN + gradient clipping | 64 | 1 (corregido) | 0.420 |
+| 20 | RNN + Bahdanau Attention | 5 | 1 | **0.575** |
+| 21 | Self-Attention manual | 5 | 1 | 0.405 |
+| **22** | **Self-Attention manual** | **32** | **1** | **pendiente** |
 
 ## Decisión de Framework
 

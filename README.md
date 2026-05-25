@@ -194,6 +194,7 @@ Input (5 tokens) -> Embedding -> + Positional Encoding
 | 20 | RNN + Bahdanau Attention | 5 | 1 | 0.575 |
 | 21 | Self-Attention manual | 5 | 1 | 0.405 |
 | 21_v2 | Self-Attention manual (window=32) | 32 | 1 | 0.104 |
+| **21_v3** | **Self-Attention (trainable embeddings)** | **5** | **1** | **0.749** |
 | **22** | **Mini Transformer (3 capas + FFN, last token)** | **5** | **1** | **0.641** |
 | **22_v2** | **Mini Transformer (trainable embeddings)** | **5** | **1** | **0.755** |
 | **23** | **Mini Transformer (warmup + label smooth)** | **5** | **1** | **?** |
@@ -219,7 +220,7 @@ El GlobalAvgPool promediaba la basura de tokens iniciales con poca información 
 
 | # | Hallazgo | Evidencia |
 |---|----------|-----------|
-| 1 | **Embedding congelado limita el techo** | 22→22_v2: 0.641→0.755 solo con `trainable=True` |
+| 1 | **Embedding congelado limita el techo** | 21→21_v3: 0.405→0.749 (+0.344); 22→22_v2: 0.641→0.755 (+0.114) — `trainable=True` desbloquea el modelo |
 | 2 | **GlobalAvgPooling + Causal Mask es trampa mortal** | El último token (22) supera al avg (23 original) de 0.103 a 0.641 |
 | 3 | **RNN + Bahdanau Attention es imbatible con pocos datos** | 20 logró 0.575 con solo 128 params entrenables, superó a self-attention con 58K |
 | 4 | **Self-attention necesita profundidad para ventanas grandes** | 1 capa con window=32 (21_v2) da 0.104; 3 capas + FFN (22) dan 0.641 |

@@ -8,7 +8,7 @@
 | Rows | 661 | 29,567 |
 | Total chars | ~187K | ~519M |
 | Max chars usados | 187K | **300K** |
-| Vocab | 3,291 (c≥2) | 10,000 (top 10K, c≥5) |
+| Vocab | 3,291 (c≥2) | **3,904** (top 10K, c≥2) |
 | Embed dim | 64 | **128** |
 | Create pairs | doble loop Python | vectorizado (NumPy slices) |
 | Negative sampling | loop Python | vectorizado (NumPy) |
@@ -23,9 +23,9 @@
    - `batch_size`: 256 → **64**
    - `shuffle buffer`: `len(all_words)` → **10,000** (no carga todo el dataset en shuffle)
 
-3. **Early Stopping** — `monitor='loss', patience=2, restore_best_weights=True`. Corta automáticamente cuando la loss deja de mejorar (~2-3 épocas, ~20 min total).
+3. **Early Stopping** — `monitor='loss', patience=2, restore_best_weights=True`. Corta automáticamente cuando la loss deja de mejorar (~2-3 épocas).
 
-3. **Vocab acotado** — Se toman las 10K palabras más frecuentes con frecuencia ≥ 5 (`most_common(10000)`). Esto mantiene el softmax manejable sin perder cobertura significativa.
+4. **Vocab acotado** — Se toman las 10K palabras más frecuentes con frecuencia ≥ 2 (`most_common(10000)`, `c >= 2`). Vocab resultante: 3,904 palabras — supera las 3,291 de v2.
 
 4. **Create pairs vectorizado** — v2 iteraba cada palabra con doble loop Python (`for i, word: for j in range(...)`) haciendo 2 dict lookups por par. v3 pre-convierte todo a índices NumPy y construye contextos con slices:
    - `np.array([text_vocab.get(w, -1) for w in words])` — un solo pass

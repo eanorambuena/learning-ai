@@ -7,7 +7,7 @@
 | Dataset | gaianet/london | iohadrubin/wikitext-103-raw-v1 |
 | Rows | 661 | 29,567 |
 | Total chars | ~187K | ~519M |
-| Max chars usados | 187K | **500K** |
+| Max chars usados | 187K | **300K** |
 | Vocab | 3,291 (c≥2) | 10,000 (top 10K, c≥5) |
 | Embed dim | 64 | **128** |
 | Create pairs | doble loop Python | vectorizado (NumPy slices) |
@@ -17,7 +17,7 @@
 
 ## Cambios de implementación
 
-1. **Dataset masivo** — Wikitext-103 es ~2,780× más grande que gaianet/london. Para evitar OOM, se procesan solo los primeros 500K caracteres (~2.7× más que v2). Con 500K chars se generan ~250K pares positivos + 1.25M negativos (~23K steps/epoch con batch=64).
+1. **Dataset masivo** — Wikitext-103 es ~2,780× más grande que gaianet/london. Para evitar OOM, se procesan solo los primeros 300K caracteres (~1.6× más que v2). Con 300K chars se generan ~150K pares positivos + 750K negativos (~12K steps/epoch con batch=64).
 
 2. **Memory fit optimizations** — Para evitar warnings de `cpu_allocator_impl`:
    - `batch_size`: 256 → **64**

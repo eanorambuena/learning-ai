@@ -7,7 +7,7 @@
 | Dataset | gaianet/london | iohadrubin/wikitext-103-raw-v1 |
 | Rows | 661 | 29,567 |
 | Total chars | ~187K | ~519M |
-| Max chars usados | 187K | **3M** |
+| Max chars usados | 187K | **500K** |
 | Vocab | 3,291 (c≥2) | 10,000 (top 10K, c≥5) |
 | Embed dim | 64 | **128** |
 | Create pairs | doble loop Python | vectorizado (NumPy slices) |
@@ -17,11 +17,13 @@
 
 ## Cambios de implementación
 
-1. **Dataset masivo** — Wikitext-103 es ~2,780× más grande que gaianet/london. Para evitar OOM, se procesan solo los primeros 3M de caracteres en lugar de cargar los 519MB completos. Aún así es ~16× más texto que v2 (187K).
+1. **Dataset masivo** — Wikitext-103 es ~2,780× más grande que gaianet/london. Para evitar OOM, se procesan solo los primeros 500K caracteres (~2.7× más que v2). Con 500K chars se generan ~250K pares positivos + 1.25M negativos (~23K steps/epoch con batch=64).
 
-2. **Memory fit optimizations** — Con 3M chars se generan ~1.5M pares positivos + 7.5M negativos (~4GB en RAM como tensores). Para evitar warnings de `cpu_allocator_impl`:
+2. **Memory fit optimizations** — Para evitar warnings de `cpu_allocator_impl`:
    - `batch_size`: 256 → **64**
    - `shuffle buffer`: `len(all_words)` → **10,000** (no carga todo el dataset en shuffle)
+
+3. **Early Stopping** — `monitor='loss', patience=2, restore_best_weights=True`. Corta automáticamente cuando la loss deja de mejorar (~2-3 épocas, ~20 min total).
 
 3. **Vocab acotado** — Se toman las 10K palabras más frecuentes con frecuencia ≥ 5 (`most_common(10000)`). Esto mantiene el softmax manejable sin perder cobertura significativa.
 

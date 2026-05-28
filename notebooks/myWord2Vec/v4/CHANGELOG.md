@@ -4,12 +4,12 @@
 
 | Aspecto | v3 (wikitext-103) | v4 (wikitext-103, vocab grande) |
 |---------|:------------------:|:-------------------------------:|
-| Max chars usados | 300K | **5M** |
-| Filter `len(w) > 1` | ✅ (elimina "a", "i") | ❌ **eliminado** |
+| Max chars usados | 300K | **1M** |
+| Filter `len(w) > 1` | ✅ (elimina "a", "i") | ❌ **solo filtrar vacíos** |
 | `most_common(K)` | 10K | **25K** |
-| Vocab resultante | 3,904 | **~18-22K** (estimado) |
-| Embedding params | 499,712 | **~2.5M** (target + context) |
-| Secuencias retenidas en nb23 | ~10-15% del texto | **~50-70%** (estimado) |
+| Vocab resultante | 3,904 | **~10-12K** (estimado) |
+| Embedding params | 499,712 | **~1.5M** (target + context) |
+| Secuencias retenidas en nb23 | ~10-15% del texto | **~35-50%** (estimado) |
 
 **Motivo:** El vocab v3 de 3,904 palabras era el cuello de botella de nb23. Incluso sin el filtro `len>2`, ~85% del texto quedaba OOV, rompiendo la coherencia de las secuencias. Con v4 se espera que nb23 retenga la mayoría del texto, mejorando significativamente la accuracy.
 
@@ -17,15 +17,15 @@
 
 | Línea | V3 | V4 |
 |:-----:|:--:|:--:|
-| 102 | `MAX_CHARS = 300_000` | `MAX_CHARS = 5_000_000` |
-| 111-113 | `words = [w for w in words if len(w) > 1]` | **eliminado** |
+| 102 | `MAX_CHARS = 300_000` | `MAX_CHARS = 1_000_000` |
+| 111-113 | `words = [w for w in words if len(w) > 1]` | **solo filtrar vacíos** (`if w`) |
 | 134 | `most_common(10000)` | `most_common(25000)` |
 
 **Impacto estimado:**
-- Vocab: 3,904 → **~18-22K palabras**
-- Secuencias retenidas en nb23: ~10-15% del texto → **~50-70%**
-- Embedding (target+context): 499K params c/u → **~2.5M params c/u**
-- Tiempo de entrenamiento: ~30 min → **~2-4h** (CPU)
+- Vocab: 3,904 → **~10-12K palabras**
+- Secuencias retenidas en nb23: ~10-15% del texto → **~35-50%**
+- Embedding (target+context): 499K params c/u → **~1.5M params c/u**
+- Tiempo de entrenamiento: ~30 min → **~1h** (CPU, ~6 min/epoch)
 
 ---
 

@@ -80,3 +80,9 @@ make run file=basics/01_perceptron_mse.py
 2. **GlobalAvgPooling + causal mask es destructivo** — último token (22) supera al avg de 0.103 a 0.641
 3. **RNN + Bahdanau Attention** — 0.575 con solo 128 params entrenables
 4. **v3 embeddings** — wikitext-103 con vocab 10K, dim 128. Ver [`notebooks/myWord2Vec/v3/README.md`](notebooks/myWord2Vec/v3/README.md) para detalles.
+
+## Memory bottleneck
+
+`keras.utils.to_categorical()` convierte etiquetas enteras a one-hot (N, vocab_size). Con vocab=3904 y N=28K son ~424 MB; con N=110K ya son ~1.6 GB y la RAM se agota.
+
+**Solución:** usar `SparseCategoricalCrossentropy()` en vez de `CategoricalCrossentropy()` + `to_categorical()`. Las etiquetas siguen siendo enteros y ocupan ~N×4 bytes (~112 KB para 28K). El trade‑off es que `SparseCategoricalCrossentropy()` **no soporta `label_smoothing`** en TF 2.21.

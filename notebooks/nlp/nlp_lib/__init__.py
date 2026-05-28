@@ -15,12 +15,13 @@ class Word2VecLoader:
         self.idx_to_word = {idx: word for word, idx in text_vocab.items()}
         self.vocab_size = target_embeddings.shape[0]
         self.embedding_dim = target_embeddings.shape[1]
+        preffix = 'trainable' if trainable else 'non_trainable'
         self.embedding_layer = layers.Embedding(
             input_dim=target_embeddings.shape[0],
             output_dim=target_embeddings.shape[1],
             weights=[target_embeddings],
             trainable=trainable,
-            name='trainable_pretrained_embedding'
+            name=f'{preffix}_pretrained_embedding'
         )
         print('Embeddings cargados:', target_embeddings.shape, context_embeddings.shape)
         print('Vocabulario cargado:', len(text_vocab))

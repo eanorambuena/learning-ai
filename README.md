@@ -79,7 +79,8 @@ make run file=basics/01_perceptron_mse.py
 1. **Embedding trainable es el factor dominante** — 21→21_v3 (+0.344), 22→22_v2 (+0.114)
 2. **GlobalAvgPooling + causal mask es destructivo** — último token (22) supera al avg de 0.103 a 0.641
 3. **RNN + Bahdanau Attention** — 0.575 con solo 128 params entrenables
-4. **v3 embeddings** — wikitext-103 con vocab 10K, dim 128. Ver [`notebooks/myWord2Vec/v3/README.md`](notebooks/myWord2Vec/v3/README.md) para detalles.
+4. **v3 embeddings** — wikitext-103 con vocab 10K, dim 128. Ver [`notebooks/myWord2Vec/v3/CHANGELOG.md`](notebooks/myWord2Vec/v3/CHANGELOG.md) para detalles.
+5. **v4 embeddings** — wikitext-103 con vocab 25K, dim 128, sin filtro `len>1`. Ver [`notebooks/myWord2Vec/v4/CHANGELOG.md`](notebooks/myWord2Vec/v4/CHANGELOG.md) para detalles.
 
 ## Memory bottleneck
 

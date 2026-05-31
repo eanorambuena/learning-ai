@@ -1,10 +1,12 @@
+import os
 import numpy as np
 from tensorflow.keras import layers
 
 
 class Word2VecLoader:
     def __init__(self, version, trainable=True):
-        path = f'../myWord2Vec/{version}/'
+        _base = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(_base, '../../myWord2Vec', version) + '/'
         target_embeddings = np.load(path + 'target_embeddings.npy')
         context_embeddings = np.load(path + 'context_embeddings.npy')
         text_vocab = np.load(path + 'text_vocab.npy', allow_pickle=True).item()

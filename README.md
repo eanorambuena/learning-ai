@@ -37,7 +37,7 @@ make run file=basics/01_perceptron_mse.py
 ├── .env.example                # Variables de entorno (HF_TOKEN, LD_LIBRARY_PATH)
 ├── .vscode/settings.json       # Configuración VS Code
 ├── notebooks/
-│   ├── nlp/                    # Notebooks de NLP (16–25)
+│   ├── nlp/                    # Notebooks de NLP (16–25+)
 │   │   ├── 16_word2vec_usage.ipynb
 │   │   ├── 17_word2vec_next_word.ipynb
 │   │   ├── 18_rnn_manual.ipynb
@@ -51,13 +51,15 @@ make run file=basics/01_perceptron_mse.py
 │   │   ├── 23_mini_transformer_warmup_ls.ipynb
 │   │   ├── 23_v2_mini_transformer_v4.ipynb
 │   │   ├── 23_v3_mini_transformer_v4_teacherforcing.ipynb
-│   │   ├── 24_mini_transformer_v4_teacherforcing.ipynb
-│   │   ├── 24_v2_mini_transformer_v4_teacherforcing.ipynb
-│   │   ├── 24_v3_mini_transformer_v4_teacherforcing.ipynb
+│   │   ├── 24_v2_santiago2.8Mparams_5Mchars_mini_transformer_colab.ipynb
+│   │   ├── 24_v3_santiago2.8Mparams_20Mchars_mini_transformer_colab.ipynb
+│   │   ├── 24_v4_santiago2.8Mparams_20Mchars_mixedFP16.ipynb
+│   │   ├── 25_ezeiza9Mparams_50Mchars.ipynb
 │   │   ├── 25_cuda_test.ipynb
 │   │   ├── nlp_lib/            # Librería compartida
 │   │   │   └── __init__.py     # Word2VecLoader class
-│   │   └── ...
+│   │   └── checkpoints/        # Pesos guardados por modelo
+│   │       └── ezeiza/         # Mejores pesos de Ezeiza
 │   └── myWord2Vec/             # Embeddings Word2Vec por versión
 │       ├── v1/                 # 11–15 original (gaianet/london, vocab 3K)
 │       ├── v2/                 # 15_v2 (gaianet/london, vocab 8K)
@@ -71,22 +73,26 @@ make run file=basics/01_perceptron_mse.py
 
 ## Progresión NLP
 
-| Notebook | Modelo | Window | Layers | Vocab | Test Acc |
-|----------|--------|:-----:|:------:|:-----:|:--------:|
-| 18 | RNN vanilla | 5 | 1 RNN | v2 | 0.403 |
-| 19 | RNN + gradient clipping | 64 | 1 RNN | v2 | 0.420 |
-| 20 | RNN + Bahdanau Attention | 5 | 1 RNN+Att | v2 | 0.575 |
-| 21 | Self-Attention manual | 5 | 1 SA | v2 | 0.405 |
-| 21_v2 | Self-Attention (window=32) | 32 | 1 SA | v2 | 0.104 |
-| 21_v3 | Self-Attention (trainable emb) | 5 | 1 SA | v2 | 0.749 |
-| 22 | Mini Transformer (causal+last) | 5 | 3 SA+FFN | v2 | 0.641 |
-| 22_v2 | Mini Transformer (trainable emb) | 5 | 3 SA+FFN | v2 | **0.755** |
-| 23 | Mini Transformer (+warmup+LS) | 5 | 3 SA+FFN | v3 | **?** |
-| 23_v2 | Mini Transformer (Word2Vec v4) | 5 | 3 SA+FFN | v4 | 0.171 |
-| 23_v3 | + Teacher Forcing + W32 | 32 | 3 SA+FFN | v4 | **0.342** |
-| 24 | + 6L post-norm (stuck) | 32 | 6 SA+FFN | v4 | 0.090 |
-| **24_v2** | **+ 4L pre-norm + clipnorm** | **32** | **4 SA+FFN** | **v4** | **0.372↑** |
-| 24_v3 | copia de 24_v2 | 32 | 4 SA+FFN | v4 | ? |
+| Notebook | Modelo | Params | Dim | Window | Layers | Vocab | Chars | Test Acc |
+|----------|--------|:-----:|:---:|:------:|:------:|:-----:|:-----:|:--------:|
+| 16 | Word2Vec básico | — | 128 | — | — | v1 | 100K | — |
+| 17 | Word2Vec + predict | — | 128 | 3 | — | v1 | 100K | — |
+| 18 | RNN vanilla | 128 | — | 5 | 1 RNN | v2 | — | 0.403 |
+| 19 | RNN + gradient clipping | 128 | — | 64 | 1 RNN | v2 | — | 0.420 |
+| 20 | RNN + Bahdanau Attention | 128 | — | 5 | 1 RNN+Att | v2 | — | 0.575 |
+| 21 | Self-Attention manual | ~130K | — | 5 | 1 SA | v2 | — | 0.405 |
+| 21_v2 | Self-Attention (window=32) | ~130K | — | 32 | 1 SA | v2 | — | 0.104 |
+| 21_v3 | Self-Attention (trainable emb) | ~8M | — | 5 | 1 SA | v2 | — | 0.749 |
+| 22 | Mini Transformer (causal+last) | ~2.5M | 128 | 5 | 3 SA+FFN | v2 | — | 0.641 |
+| 22_v2 | Mini Transformer (trainable emb) | ~8M | 128 | 5 | 3 SA+FFN | v2 | — | **0.755** |
+| 23 | + warmup + label smoothing | ~8M | 128 | 5 | 3 SA+FFN | v3 | 50K | **?** |
+| 23_v2 | + Word2Vec v4 | ~8M | 128 | 5 | 3 SA+FFN | v4 | 50K | 0.171 |
+| 23_v3 | + Teacher Forcing + W32 | ~8M | 128 | 32 | 3 SA+FFN | v4 | 50K | **0.342** |
+| 24 | + 6L post-norm (stuck) | ~3.5M | 128 | 32 | 6 SA+FFN | v4 | 20M | 0.090 |
+| **24_v2** | **Santiago 5M (4L pre-norm)** | **2.8M** | **128** | **32** | **4 SA+FFN** | **v4** | **5M** | **0.372** |
+| **24_v3** | **Santiago 20M** | **2.8M** | **128** | **32** | **4 SA+FFN** | **v4** | **20M** | **~0.37** |
+| 24_v4 | Santiago 20M mixedFP16 | 2.8M | 128 | 32 | 4 SA+FFN | v4 | 20M | NaN (crash) |
+| **25_ezeiza** | **Ezeiza 9.1M** | **9.1M** | **320** | **64** | **6 SA+FFN** | **v4** | **50M** | **?** (running) |
 
 ## Hallazgos clave
 

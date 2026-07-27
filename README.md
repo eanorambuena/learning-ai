@@ -54,7 +54,7 @@ make run file=basics/01_perceptron_mse.py
 │   │   ├── 24_v2_santiago2.8Mparams_5Mchars_mini_transformer_colab.ipynb
 │   │   ├── 24_v3_santiago2.8Mparams_20Mchars_mini_transformer_colab.ipynb
 │   │   ├── 24_v4_santiago2.8Mparams_20Mchars_mixedFP16.ipynb
-│   │   ├── 25_ezeiza9Mparams_50Mchars.ipynb
+│   │   ├── 26_ezeiza9Mparams_50Mchars.ipynb
 │   │   ├── 25_cuda_test.ipynb
 │   │   ├── nlp_lib/            # Librería compartida
 │   │   │   └── __init__.py     # Word2VecLoader class
@@ -92,7 +92,7 @@ make run file=basics/01_perceptron_mse.py
 | **24_v2** | **Santiago 5M (4L pre-norm)** | **2.8M** | **128** | **32** | **4 SA+FFN** | **v4** | **5M** | **0.372** |
 | **24_v3** | **Santiago 20M** | **2.8M** | **128** | **32** | **4 SA+FFN** | **v4** | **20M** | **~0.37** |
 | 24_v4 | Santiago 20M mixedFP16 | 2.8M | 128 | 32 | 4 SA+FFN | v4 | 20M | NaN (crash) |
-| **25_ezeiza** | **Ezeiza 9.1M** | **9.1M** | **320** | **64** | **6 SA+FFN** | **v4** | **50M** | **?** (running) |
+| **26_ezeiza** | **Ezeiza 9.1M** | **9.1M** | **320** | **64** | **6 SA+FFN** | **v4** | **50M** | **?** (running) |
 
 ## Hallazgos clave
 
@@ -159,7 +159,7 @@ Nombres de aeropuertos/ciudades que marcan el avance geográfico hacia el paper 
 | 24_v2_santiago2.8M_5Mchars | 2.8M | 128 | 4 | 128 | 4 | 32 | 128 | 5M | ~15 min |
 | 24_v3_santiago2.8M_20Mchars | 2.8M | 128 | 4 | 128 | 4 | 32 | 128 | 20M | ~1 h |
 | 24_v4_santiago2.8M_20Mchars_mixedFP16 | 2.8M | 128 | 4 | 128 | 4 | 32 | 128 | 20M | crash (NaN) |
-| **25_ezeiza9.1M_50Mchars** | **9.1M** | **320** | **6** | **640** | **8** | **64** | **64** | **50M** | **~3 h/epoch** |
+| **26_ezeiza9.1M_50Mchars** | **9.1M** | **320** | **6** | **640** | **8** | **64** | **64** | **50M** | **~3 h/epoch** |
 
 ### Fase 2: SLMs (próximos)
 

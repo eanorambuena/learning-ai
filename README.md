@@ -119,3 +119,45 @@ RTX 3060 (6 GB VRAM) con NVIDIA driver 555.97, CUDA 12.5.
 | Colab T4 | sí | ~3 min |
 
 **Problema conocido:** `WARMUP_STEPS` + post-norm con 6+ capas causa estancamiento. Pre-norm + `clipnorm` + LR constante lo resuelve.
+
+## Roadmap: De MicroLM a Transformer Base
+
+Nombres de aeropuertos/ciudades que marcan el avance geográfico hacia el paper "Attention Is All You Need" (65M params).
+
+### Fase 0: Fundamentos
+
+| Notebook | Descripción |
+|----------|-------------|
+| 16 | Word2Vec básico |
+| 17 | Word2Vec + predicción |
+| 18–20 | RNN manual + gradient clipping + Bahdanau attention |
+| 21–21_v3 | Self-attention desde cero |
+| 22–23_v3 | Mini transformers |
+
+### Fase 1: MicroLMs
+
+| Notebook | Params | Dim | Layers | FF | Heads | Window | Batch | Chars | Tiempo |
+|----------|--------|-----|--------|-----|-------|--------|-------|-------|--------|
+| 24_v2_santiago2.8M_5Mchars | 2.8M | 128 | 4 | 128 | 4 | 32 | 128 | 5M | ~15 min |
+| 24_v3_santiago2.8M_20Mchars | 2.8M | 128 | 4 | 128 | 4 | 32 | 128 | 20M | ~1 h |
+| 24_v4_santiago2.8M_20Mchars_mixedFP16 | 2.8M | 128 | 4 | 128 | 4 | 32 | 128 | 20M | crash (NaN) |
+| **25_ezeiza9.1M_50Mchars** | **9.1M** | **320** | **6** | **640** | **8** | **64** | **64** | **50M** | **~3 h/epoch** |
+
+### Fase 2: SLMs (próximos)
+
+| Modelo | Código | Params | Dim | Layers | FF | Heads | Window | Batch | Chars | VRAM | Tiempo/epoch |
+|--------|--------|--------|-----|--------|-----|-------|--------|-------|-------|------|-------------|
+| **Schipol** | 26_schipol18M_80Mchars | **~18M** | **480** | **6** | **960** | **8** | 64 | 32 | 80M | ~2GB | ~6 h |
+| **Eindhoven** | 27_eindhoven38M_120Mchars | **~38M** | **576** | **8** | **2304** | **8** | 64 | 16 | 120M | ~3.5GB | ~12 h |
+| Transformer Base | — | 65M | 768 | 8 | 3072 | 12 | 128 | 16 | 200M | ~5GB | ~20 h |
+
+### Depth Delusion (arXiv 2601.20994, Ene 2026)
+
+Paper clave: "The Depth Delusion: Why Transformers Should Be Wider, Not Deeper".
+
+**Hallazgos:**
+- Width escala 2.8× más rápido que depth: D* ∝ C^0.12, W* ∝ C^0.34
+- Critical depth: D_crit ∝ W^0.44. Pasado ese punto, más capas empeora el loss
+- A escala 7B: 32L×4096W (6.92B) supera a 64L×2816W (7.08B) por 0.12 nats
+
+**Implicación práctica:** para un presupuesto de parámetros fijo, priorizar width sobre depth. Ezeiza se diseñó con esta filosofía: 6 layers + 320 dim en vez de 8 layers + 256 dim.

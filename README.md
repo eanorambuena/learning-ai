@@ -99,6 +99,18 @@ make run file=basics/01_perceptron_mse.py
 7. **LR constante > warmup para modelos chicos** — warmup fue contraproducente con 128-dim y 6 capas. LR constante (0.001) funciona mejor.
 8. **v4 embeddings** — wikitext-103 con vocab 9K, dim 128, sin filtro `len>1`. Word2VecLoader soporta multi-versión.
 9. **Word2VecLoader multi-versión** — `Word2VecLoader(version='v4')` resuelve path relativo a `__file__`, no CWD.
+10. **Overlapping windows con stride=1 maximiza datos** — cada char aparece en W ventanas; el modelo aprende de todas las posiciones sin costo extra de memoria.
+11. **mixed_float16 en modelos <10M params causa NaN** — ReLU + -1e9 en float16 → inf + (-inf) = NaN. LossScaleOptimizer no puede rescatar forward pass corrupto. float32 es más simple y cabe en 6GB.
+12. **LossScaleOptimizer manual = kernel crash** — TF 2.20+ auto-wrap con mixed_float16. Hacerlo manual duplica el wrapper y silencia el crash.
+13. **Cache en disco (/tmp) con .cache() reduce I/O** — datasets de 50M chars con shuffle+batch se benefician de cachear el pipeline preprocesado.
+14. **Más datos > más parámetros (hasta saturación)** — Santiago 5M→20M chars subió accuracy de ~0.25 a ~0.37 con mismos 2.8M params. El límite de saturación está en ~10-15× los params en chars.
+15. **Depth Delusion: width > depth** — Para ~8M params, 6L×320d supera a 8L×256d. El gradiente se desvanece en capas profundas con poca dimensión.
+
+## Proximidad a Transformer Base
+
+- Santiago (2.8M) está **23×** más lejos de Transformer Base (65M) que de una RNN simple
+- Ezeiza (9.1M) es **7×** más cerca de Transformer Base que Santiago
+- Próximo salto Schipol (18M) pondrá el modelo a **28%** del camino a Transformer Base
 
 ## Memory bottleneck
 
